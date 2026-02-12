@@ -29,8 +29,8 @@ async def connect_to_mongodb():
         _client = AsyncIOMotorClient(
             settings.MONGODB_URI,
             tlsAllowInvalidCertificates=True,
-            connectTimeoutMS=30000,
-            serverSelectionTimeoutMS=30000,
+            connectTimeoutMS=10000,
+            serverSelectionTimeoutMS=10000,
             retryWrites=True
         )
         

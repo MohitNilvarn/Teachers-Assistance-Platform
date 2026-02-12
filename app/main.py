@@ -30,11 +30,17 @@ async def lifespan(app: FastAPI):
     # Startup
     logger.info("Application is STARTING UP...")
     
-    # Connect to MongoDB
-    await connect_to_mongodb()
+    # Connect to MongoDB (non-fatal — app starts even if DB is slow)
+    try:
+        await connect_to_mongodb()
+    except Exception as e:
+        logger.error(f"MongoDB connection failed on startup: {e}. Will retry on first request.")
     
     # Connect to Redis (optional)
-    await connect_to_redis()
+    try:
+        await connect_to_redis()
+    except Exception as e:
+        logger.warning(f"Redis connection failed: {e}")
     
     logger.info("Application startup complete!")
     
