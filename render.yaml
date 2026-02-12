@@ -1,0 +1,49 @@
+# Render Blueprint – Infrastructure as Code
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: tap-backend
+    runtime: python
+    region: oregon
+    plan: free
+    buildCommand: |
+      pip install --upgrade pip
+      pip install -r requirements.txt
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    envVars:
+      # ── MongoDB Atlas ──
+      - key: MONGODB_URI
+        sync: false          # you'll set this in the Render dashboard
+      - key: MONGODB_DB_NAME
+        value: tap_database
+
+      # ── Supabase Auth ──
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_KEY
+        sync: false
+
+      # ── Groq LLM ──
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama3-70b-8192
+
+      # ── HuggingFace Embeddings ──
+      - key: HUGGINGFACE_API_KEY
+        sync: false
+      - key: EMBEDDING_MODEL
+        value: sentence-transformers/all-MiniLM-L6-v2
+
+      # ── Deepgram (Real-time Transcription) ──
+      - key: DEEPGRAM_API_KEY
+        sync: false
+
+      # ── Redis (optional) ──
+      - key: REDIS_URL
+        sync: false
+
+      # ── Python settings ──
+      - key: PYTHON_VERSION
+        value: "3.11.6"
