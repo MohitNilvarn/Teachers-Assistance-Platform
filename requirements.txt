@@ -2,8 +2,9 @@
 fastapi
 uvicorn[standard]
 python-multipart
-pydantic
+pydantic[email]
 pydantic-settings
+email-validator
 
 # Database & ORM
 sqlalchemy
