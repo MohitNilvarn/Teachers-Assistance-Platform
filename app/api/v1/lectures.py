@@ -28,7 +28,7 @@ from app.models.lecture import (
     GenerationStatus as ModelGenerationStatus
 )
 from app.services.audio_processor import transcribe_audio, get_audio_duration
-from app.services.vector_store import add_documents
+from app.services.vector_store import add_documents, delete_lecture_embeddings
 from app.ai.graph import run_content_generation
 
 logger = get_logger("TAP.Lectures")
@@ -247,7 +247,7 @@ async def transcribe_lecture(
         lecture.transcription_status = ModelTranscriptionStatus.COMPLETED
         lecture.transcribed_at = datetime.utcnow()
         
-        # Index transcript in vector store
+        # Index transcript in vector store (MongoDB)
         if result["transcript"]:
             from app.services.document_processor import chunk_text
             chunks = chunk_text(result["transcript"])
@@ -264,14 +264,16 @@ async def transcribe_lecture(
                     for i in range(len(chunks))
                 ]
                 
-                add_documents(
+                await add_documents(
                     course_id=lecture.course_id,
+                    lecture_id=str(lecture.id),
                     documents=chunks,
                     metadatas=metadatas,
                     ids=chunk_ids
                 )
                 
                 lecture.embedding_ids = chunk_ids
+                lecture.embedding_count = len(chunk_ids)
         
         await lecture.save()
         
@@ -412,12 +414,14 @@ async def delete_lecture(
     if lecture.audio_path and os.path.exists(lecture.audio_path):
         os.remove(lecture.audio_path)
     
-    # Delete from vector store
-    from app.services.vector_store import delete_documents
-    if lecture.embedding_ids:
-        delete_documents(lecture.course_id, lecture.embedding_ids)
+    # Delete from vector store — transcript + material embeddings for this lecture
+    await delete_lecture_embeddings(str(lecture.id))
     
-    # Delete associated content
+    # Delete materials linked to this lecture
+    from app.models.material import Material
+    await Material.find(Material.lecture_id == lecture_id).delete()
+    
+    # Delete associated generated content
     from app.models.content import GeneratedContent
     await GeneratedContent.find(GeneratedContent.lecture_id == lecture_id).delete()
     

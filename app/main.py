@@ -16,6 +16,8 @@ from app.api.v1 import courses
 from app.api.v1 import materials
 from app.api.v1 import lectures
 from app.api.v1 import content
+from app.api.v1 import users
+from app.api.v1 import realtime
 
 # Setup Logging
 setup_logging()
@@ -59,7 +61,7 @@ app = FastAPI(
     - **Semantic Search**: Context-aware content retrieval
     
     ## Tech Stack
-    - FastAPI, MongoDB Atlas, ChromaDB
+    - FastAPI, MongoDB Atlas, MongoDB Vector Search
     - Groq LLM (llama3-70b), HuggingFace Embeddings
     - LangGraph for AI workflows
     """,
@@ -105,6 +107,18 @@ app.include_router(
     content.router,
     prefix="/api/v1",
     tags=["Content"]
+)
+
+app.include_router(
+    users.router,
+    prefix="/api/v1/users",
+    tags=["Users"]
+)
+
+app.include_router(
+    realtime.router,
+    prefix="/api/v1",
+    tags=["Real-time Transcription"]
 )
 
 

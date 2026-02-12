@@ -37,12 +37,15 @@ class Settings:
     HUGGINGFACE_API_KEY: str = os.getenv("HUGGINGFACE_API_KEY", "your-huggingface-api-key-here")
     EMBEDDING_MODEL: str = os.getenv("EMBEDDING_MODEL", "sentence-transformers/all-MiniLM-L6-v2")
     
-    # ChromaDB (Vector Store)
-    CHROMA_PERSIST_DIR: str = os.getenv("CHROMA_PERSIST_DIR", "./chroma_db")
+    # MongoDB Vector Search
+    VECTOR_COLLECTION: str = os.getenv("VECTOR_COLLECTION", "vector_embeddings")
     
     # File Upload Settings
     MAX_UPLOAD_SIZE_MB: int = int(os.getenv("MAX_UPLOAD_SIZE_MB", "50"))
     UPLOAD_DIR: str = os.getenv("UPLOAD_DIR", "./uploads")
+    
+    # Deepgram API (Real-time Transcription)
+    DEEPGRAM_API_KEY: str = os.getenv("DEEPGRAM_API_KEY", "")
     
     def __init__(self):
         self._validate_config()

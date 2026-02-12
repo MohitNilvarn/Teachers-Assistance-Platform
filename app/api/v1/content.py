@@ -12,11 +12,20 @@ from app.schemas.content import (
     ContentResponse,
     ContentListResponse,
     ContentUpdateRequest,
-    ContentType
+    ContentType,
+    SemanticSearchRequest,
+    SearchResultItem,
+    SemanticSearchResponse,
 )
 from app.models.course import Course
 from app.models.lecture import Lecture
 from app.models.content import GeneratedContent, ContentType as ModelContentType
+from app.services.vector_store import (
+    search_by_lecture,
+    search_documents,
+    get_lecture_embedding_count,
+    get_collection_stats,
+)
 
 logger = get_logger("TAP.Content")
 router = APIRouter()
@@ -146,6 +155,139 @@ async def delete_content(
     
     await content.delete()
     logger.info(f"Content deleted: {content_id}")
+
+
+# =====================
+# Semantic Search Endpoints
+# =====================
+
+@router.post(
+    "/lectures/{lecture_id}/search",
+    response_model=SemanticSearchResponse,
+    summary="Semantic search within a lecture",
+)
+async def search_lecture_content(
+    lecture_id: str,
+    request: SemanticSearchRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Semantic vector search scoped to a **specific lecture**.
+
+    Searches across both the lecture transcript and the teacher-provided
+    materials for that lecture.  Use ``source_filter`` to narrow to one type:
+    - ``lecture_transcript`` — only transcript chunks
+    - ``teacher_material``  — only teacher-uploaded materials
+    """
+    lecture = await Lecture.get(lecture_id)
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+
+    await _verify_course_access(lecture.course_id, current_user)
+
+    results = await search_by_lecture(
+        lecture_id=str(lecture.id),
+        query=request.query,
+        n_results=request.n_results,
+        source_filter=request.source_filter,
+    )
+
+    return SemanticSearchResponse(
+        query=request.query,
+        results=[
+            SearchResultItem(
+                id=r["id"],
+                text=r["text"],
+                score=r["score"],
+                source=r.get("source"),
+                lecture_id=r.get("lecture_id"),
+                metadata=r.get("metadata", {}),
+            )
+            for r in results
+        ],
+        total=len(results),
+    )
+
+
+@router.post(
+    "/courses/{course_id}/search",
+    response_model=SemanticSearchResponse,
+    summary="Semantic search across an entire course",
+)
+async def search_course_content(
+    course_id: str,
+    request: SemanticSearchRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Perform semantic vector search across **all lectures and materials**
+    within a course.
+    """
+    await _verify_course_access(course_id, current_user)
+
+    results = await search_documents(
+        course_id=course_id,
+        query=request.query,
+        n_results=request.n_results,
+        source_filter=request.source_filter,
+    )
+
+    return SemanticSearchResponse(
+        query=request.query,
+        results=[
+            SearchResultItem(
+                id=r["id"],
+                text=r["text"],
+                score=r["score"],
+                source=r.get("source"),
+                lecture_id=r.get("lecture_id"),
+                metadata=r.get("metadata", {}),
+            )
+            for r in results
+        ],
+        total=len(results),
+    )
+
+
+@router.get(
+    "/lectures/{lecture_id}/embeddings/stats",
+    summary="Get embedding statistics for a lecture",
+)
+async def get_lecture_embeddings_stats(
+    lecture_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Return the number of vector embedding chunks stored for a lecture.
+    """
+    lecture = await Lecture.get(lecture_id)
+    if not lecture:
+        raise HTTPException(status_code=404, detail="Lecture not found")
+
+    await _verify_course_access(lecture.course_id, current_user)
+
+    count = await get_lecture_embedding_count(str(lecture.id))
+    return {
+        "lecture_id": str(lecture.id),
+        "embedding_count": count,
+    }
+
+
+@router.get(
+    "/courses/{course_id}/embeddings/stats",
+    summary="Get embedding statistics for a course",
+)
+async def get_course_embeddings_stats(
+    course_id: str,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Return aggregated vector embedding statistics for all lectures and
+    materials in a course.
+    """
+    await _verify_course_access(course_id, current_user)
+    stats = await get_collection_stats(course_id)
+    return stats
 
 
 # Helper functions
