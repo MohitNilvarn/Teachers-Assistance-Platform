@@ -60,10 +60,14 @@ class Lecture(Document):
     )
     generation_error: Optional[str] = Field(None, description="Error if generation failed")
     
-    # Vector store references (for transcript embeddings)
+    # Vector store references (for transcript embeddings in MongoDB)
     embedding_ids: List[str] = Field(
         default_factory=list,
-        description="ChromaDB document IDs for transcript embeddings"
+        description="MongoDB vector embedding document IDs for transcript chunks"
+    )
+    embedding_count: int = Field(
+        default=0,
+        description="Number of embedding chunks stored for this lecture"
     )
     
     # Timestamps

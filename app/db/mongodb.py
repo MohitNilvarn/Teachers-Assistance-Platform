@@ -25,7 +25,14 @@ async def connect_to_mongodb():
     
     try:
         logger.info(f"Connecting to MongoDB...")
-        _client = AsyncIOMotorClient(settings.MONGODB_URI)
+        # Disable SSL verification as temporary workaround for TLS handshake issues
+        _client = AsyncIOMotorClient(
+            settings.MONGODB_URI,
+            tlsAllowInvalidCertificates=True,
+            connectTimeoutMS=30000,
+            serverSelectionTimeoutMS=30000,
+            retryWrites=True
+        )
         
         # Test connection
         await _client.admin.command('ping')
@@ -47,6 +54,10 @@ async def connect_to_mongodb():
         )
         
         logger.info(f"Beanie ODM initialized with database: {settings.MONGODB_DB_NAME}")
+        
+        # Create vector search indexes
+        from app.services.vector_store import ensure_vector_search_index
+        await ensure_vector_search_index()
         
     except Exception as e:
         logger.critical(f"Failed to connect to MongoDB: {str(e)}")

@@ -126,3 +126,42 @@ class GenerationStatusResponse(BaseModel):
     assignment_generated: bool = False
     flashcards_generated: bool = False
     error: Optional[str] = None
+
+
+# =====================
+# Semantic Search Schemas
+# =====================
+class SemanticSearchRequest(BaseModel):
+    """Request for semantic search within a lecture or course."""
+    query: str = Field(..., description="Natural language search query", min_length=1, max_length=1000)
+    n_results: int = Field(default=5, description="Number of results to return", ge=1, le=20)
+    source_filter: Optional[str] = Field(
+        None,
+        description="Filter by source type: 'lecture_transcript' or 'teacher_material'"
+    )
+
+    class Config:
+        json_schema_extra = {
+            "example": {
+                "query": "What is a binary search tree?",
+                "n_results": 5,
+                "source_filter": "teacher_material"
+            }
+        }
+
+
+class SearchResultItem(BaseModel):
+    """A single semantic search result."""
+    id: str
+    text: str
+    score: float = Field(..., description="Similarity score (0-1, higher is better)")
+    source: Optional[str] = None
+    lecture_id: Optional[str] = None
+    metadata: Dict[str, Any] = {}
+
+
+class SemanticSearchResponse(BaseModel):
+    """Response for semantic search."""
+    query: str
+    results: List[SearchResultItem]
+    total: int

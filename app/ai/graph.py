@@ -3,11 +3,14 @@
 LangGraph workflow for content generation.
 
 This module implements a state machine using LangGraph that:
-1. Retrieves relevant context from the vector store
-2. Generates notes based on transcript + context
-3. Generates assignments based on transcript + context
-4. Generates flashcards based on transcript + context
+1. Retrieves teacher-provided materials + transcript for the SPECIFIC lecture
+2. Generates notes grounded in the teacher's material
+3. Generates assignments grounded in the teacher's material
+4. Generates flashcards grounded in the teacher's material
 5. Saves all generated content to MongoDB
+
+All context retrieval is lecture-scoped so the LLM never produces
+content outside what the teacher actually covered.
 """
 from typing import TypedDict, Optional, List, Dict, Any
 from datetime import datetime
@@ -15,13 +18,13 @@ from langgraph.graph import StateGraph, END
 from beanie import PydanticObjectId
 
 from app.core.logger import get_logger
-from app.services.vector_store import search_documents
+from app.services.vector_store import search_by_lecture
 from app.ai.llm import generate_json
 from app.ai.prompts import (
     SYSTEM_PROMPT,
     get_notes_prompt,
     get_assignment_prompt,
-    get_flashcards_prompt
+    get_flashcards_prompt,
 )
 from app.models.content import GeneratedContent, ContentType
 from app.models.lecture import Lecture, GenerationStatus
@@ -40,7 +43,9 @@ class ContentGenerationState(TypedDict):
     content_types: List[str]  # Which types to generate
     
     # Retrieved context
-    context: str
+    context: str                               # combined text from teacher materials
+    transcript_context: str                    # relevant transcript chunks
+    teacher_material_context: str              # teacher-uploaded material chunks
     context_documents: List[Dict[str, Any]]
     
     # Generated content
@@ -55,42 +60,98 @@ class ContentGenerationState(TypedDict):
 
 async def retrieve_context_node(state: ContentGenerationState) -> ContentGenerationState:
     """
-    Node: Retrieve relevant context from vector store.
+    Node: Retrieve context strictly from this lecture's own data.
+
+    Two sources — both scoped to the current lecture_id:
+      1. ``lecture_transcript`` — chunked transcript of the lecture audio.
+      2. ``teacher_material``  — PDFs / docs the teacher uploaded for this
+         lecture.
+
+    No course-wide or cross-lecture material is pulled so the LLM stays
+    grounded in exactly what the teacher provided for this lecture.
     """
-    logger.info(f"Retrieving context for lecture: {state['lecture_id']}")
-    
+    logger.info(f"Retrieving lecture-scoped context for: {state['lecture_id']}")
+
     try:
-        # Search for relevant documents using the transcript as query
-        # Use first 500 chars of transcript as search query
-        query = state["transcript"][:500] if state["transcript"] else state["lecture_title"]
-        
-        results = search_documents(
-            course_id=state["course_id"],
-            query=query,
-            n_results=5
+        query = (
+            state["transcript"][:500]
+            if state["transcript"]
+            else state["lecture_title"]
         )
-        
-        # Combine context from search results
-        context_parts = []
-        for result in results:
-            if result.get("document"):
-                context_parts.append(result["document"])
-        
-        context = "\n\n---\n\n".join(context_parts) if context_parts else "No additional context available."
-        
-        logger.info(f"Retrieved {len(results)} context documents")
-        
+
+        # 1. Teacher-uploaded materials for THIS lecture
+        material_results = await search_by_lecture(
+            lecture_id=state["lecture_id"],
+            query=query,
+            n_results=8,
+            source_filter="teacher_material",
+        )
+
+        # 2. Transcript chunks for THIS lecture
+        transcript_results = await search_by_lecture(
+            lecture_id=state["lecture_id"],
+            query=query,
+            n_results=5,
+            source_filter="lecture_transcript",
+        )
+
+        # Build separate context strings
+        material_parts = [
+            r["text"] for r in material_results if r.get("text")
+        ]
+        transcript_parts = [
+            r["text"] for r in transcript_results if r.get("text")
+        ]
+
+        teacher_material_ctx = (
+            "\n\n---\n\n".join(material_parts)
+            if material_parts
+            else "No teacher-provided materials found for this lecture."
+        )
+        transcript_ctx = (
+            "\n\n---\n\n".join(transcript_parts)
+            if transcript_parts
+            else ""
+        )
+
+        # Combined context — teacher material first (higher priority)
+        combined = []
+        if material_parts:
+            combined.append(
+                "=== TEACHER-PROVIDED MATERIALS ===\n" + teacher_material_ctx
+            )
+        if transcript_parts:
+            combined.append(
+                "=== LECTURE TRANSCRIPT EXCERPTS ===\n" + transcript_ctx
+            )
+        context = (
+            "\n\n".join(combined)
+            if combined
+            else "No additional context available."
+        )
+
+        all_results = material_results + transcript_results
+
+        logger.info(
+            f"Lecture-scoped retrieval: {len(material_results)} material + "
+            f"{len(transcript_results)} transcript chunks"
+        )
+
         return {
             **state,
             "context": context,
-            "context_documents": results
+            "transcript_context": transcript_ctx,
+            "teacher_material_context": teacher_material_ctx,
+            "context_documents": all_results,
         }
     except Exception as e:
         logger.error(f"Context retrieval error: {str(e)}")
         return {
             **state,
             "context": "No additional context available.",
-            "context_documents": []
+            "transcript_context": "",
+            "teacher_material_context": "",
+            "context_documents": [],
         }
 
 
@@ -343,6 +404,8 @@ async def run_content_generation(
         "lecture_title": lecture_title,
         "content_types": content_types,
         "context": "",
+        "transcript_context": "",
+        "teacher_material_context": "",
         "context_documents": [],
         "notes": None,
         "assignment": None,

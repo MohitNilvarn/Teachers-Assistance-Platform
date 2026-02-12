@@ -27,9 +27,19 @@ class ProcessingStatus(str, Enum):
 class Material(Document):
     """
     Represents uploaded study material (PDF, DOCX, PPTX, etc.)
+    
+    Materials are always associated with a specific lecture so that the
+    AI content generation pipeline only uses teacher-provided context
+    relevant to that lecture.  If no lecture_id is set, the material is
+    treated as general course-level reference material.
     """
     course_id: str = Field(..., description="Reference to the course")
     teacher_id: str = Field(..., description="Supabase user ID of the teacher")
+    lecture_id: Optional[str] = Field(
+        None,
+        description="Reference to the lecture this material belongs to. "
+                    "When set, the material's embeddings are scoped to this lecture."
+    )
     
     # File info
     filename: str = Field(..., description="Original filename")
@@ -47,10 +57,10 @@ class Material(Document):
         description="Additional metadata (topics, keywords, etc.)"
     )
     
-    # Vector store references
+    # Vector store references (MongoDB vector embeddings)
     embedding_ids: List[str] = Field(
         default_factory=list,
-        description="ChromaDB document IDs for embeddings"
+        description="MongoDB vector embedding document IDs"
     )
     
     # Processing status
@@ -72,6 +82,7 @@ class Material(Document):
             "example": {
                 "course_id": "course-uuid-123",
                 "teacher_id": "user-uuid-456",
+                "lecture_id": "lecture-uuid-789",
                 "filename": "lecture_notes.pdf",
                 "file_type": "pdf",
                 "processing_status": "completed"

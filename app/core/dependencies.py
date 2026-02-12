@@ -113,3 +113,45 @@ async def get_optional_user(credentials: Optional[HTTPAuthorizationCredentials] 
     except HTTPException:
         return None
 
+
+async def verify_token_from_string(token: str) -> Optional[Dict[str, Any]]:
+    """
+    Verify a JWT token from a raw string (for WebSocket auth).
+    
+    Args:
+        token: Raw JWT token string
+        
+    Returns:
+        User dict if valid, None otherwise
+    """
+    if not token:
+        return None
+    
+    try:
+        payload = jwt.decode(
+            token,
+            "",
+            algorithms=["HS256"],
+            options={
+                "verify_signature": False,
+                "verify_aud": False,
+                "verify_exp": True
+            }
+        )
+        
+        user_id = payload.get("sub")
+        if not user_id:
+            return None
+        
+        user_metadata = payload.get("user_metadata", {})
+        
+        return {
+            "id": user_id,
+            "email": payload.get("email", ""),
+            "role": user_metadata.get("role", "student"),
+            "user_metadata": user_metadata,
+        }
+        
+    except JWTError as e:
+        logger.warning(f"WebSocket JWT validation error: {str(e)}")
+        return None

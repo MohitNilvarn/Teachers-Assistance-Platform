@@ -26,8 +26,8 @@ langchain-community
 langchain-groq
 langgraph
 
-# Vector Stores
-chromadb
+# Vector Stores (using MongoDB Atlas Vector Search - no external deps needed)
+# chromadb  # Replaced by MongoDB Atlas Vector Search
 sentence-transformers
 
 # Document Processing
@@ -42,6 +42,9 @@ faster-whisper
 pydub
 ffmpeg-python
 librosa
+
+# Real-time Transcription
+deepgram-sdk
 
 # Text Processing & Embeddings
 tiktoken
