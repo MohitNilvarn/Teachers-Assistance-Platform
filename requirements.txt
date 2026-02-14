@@ -2,8 +2,9 @@
 fastapi
 uvicorn[standard]
 python-multipart
-pydantic
+pydantic[email]
 pydantic-settings
+email-validator
 
 # Database & ORM
 sqlalchemy
@@ -14,6 +15,7 @@ postgrest
 motor
 beanie
 pymongo
+dnspython
 
 # Authentication
 python-jose[cryptography]
@@ -22,6 +24,7 @@ python-dotenv
 
 # LangChain Ecosystem (Open Source)
 langchain
+langchain-core
 langchain-community
 langchain-groq
 langgraph
@@ -36,6 +39,7 @@ python-docx
 python-pptx
 openpyxl
 markdown
+beautifulsoup4
 
 # Audio Processing (Open Source)
 faster-whisper
@@ -45,11 +49,13 @@ librosa
 
 # Real-time Transcription
 deepgram-sdk
+websockets
 
 # Text Processing & Embeddings
 tiktoken
 huggingface-hub
 transformers
+numpy
 
 # Async & Background Tasks
 celery
@@ -71,4 +77,5 @@ pytest-cov
 # Utils
 python-magic
 aiofiles
+requests
 tenacity
