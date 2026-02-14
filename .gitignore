@@ -1,3 +1,46 @@
+# ===== FRONTEND FILES (DO NOT MERGE WITH BACKEND) =====
+# Frontend source and config
+src/
+public/
+index.html
+vite.config.ts
+tailwind.config.js
+postcss.config.js
+eslint.config.js
+
+# Frontend TypeScript configs
+tsconfig.json
+tsconfig.app.json
+tsconfig.node.json
+
+# Frontend package files
+package.json
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+node_modules/
+
+# Frontend build output
+dist/
+dist-ssr/
+.next/
+.nuxt/
+out/
+build/
+.turbo/
+.vercel/
+.parcel-cache/
+.cache/
+
+# Frontend cache and linting
+.eslintcache
+.stylelintcache
+.prettierignore
+
+# Frontend browser cache
+.vite/
+
+# ===== GENERAL =====
 # Logs
 logs
 *.log
@@ -7,9 +50,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
 *.local
 
 # Editor directories and files
@@ -22,3 +62,56 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ===== BACKEND SPECIFIC =====
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual environments
+.venv
+venv
+
+# Environment variables (NEVER commit .env)
+.env
+.env.local
+.env.*.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+chroma_db/
+uploads/
+
+# Pytest
+.pytest_cache/
+
+# IDE
+.idea/
+.vscode/
+
+# OS
+.DS_Store
+Thumbs.db
