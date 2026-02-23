@@ -7,6 +7,10 @@ import DashboardHome from "./pages/dashboard/DashboardHome"
 import GenerateNotes from "./pages/dashboard/GenerateNotes"
 import GenerateAssignments from "./pages/dashboard/GenerateAssignments"
 import GenerateFlashcards from "./pages/dashboard/GenerateFlashcards"
+import CoursesPage from "./pages/dashboard/CoursesPage"
+import CourseDetailPage from "./pages/dashboard/CourseDetailPage"
+import LectureDetailPage from "./pages/dashboard/LectureDetailPage"
+import RecordLecturePage from "./pages/dashboard/RecordLecturePage"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 
 function App() {
@@ -20,6 +24,10 @@ function App() {
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<DashboardHome />} />
+            <Route path="courses" element={<CoursesPage />} />
+            <Route path="courses/:courseId" element={<CourseDetailPage />} />
+            <Route path="courses/:courseId/record" element={<RecordLecturePage />} />
+            <Route path="lectures/:lectureId" element={<LectureDetailPage />} />
             <Route path="notes" element={<GenerateNotes />} />
             <Route path="assignments" element={<GenerateAssignments />} />
             <Route path="flashcards" element={<GenerateFlashcards />} />

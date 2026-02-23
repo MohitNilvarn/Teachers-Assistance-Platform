@@ -1,55 +1,58 @@
-<<<<<<< HEAD
-# Environment variables - NEVER commit these
+# ===== ENVIRONMENT VARIABLES =====
 .env
+.env.*
 .env.local
 .env.production
 
-=======
-# ===== FRONTEND FILES (DO NOT MERGE WITH BACKEND) =====
-# Frontend source and config
-src/
-public/
-index.html
-vite.config.ts
-tailwind.config.js
-postcss.config.js
-eslint.config.js
+# ===== PYTHON =====
+__pycache__/
+**/__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg
+*.egg-info/
+.installed.cfg
+develop-eggs/
+eggs/
+.eggs/
+wheels/
+sdist/
+var/
 
-# Frontend TypeScript configs
-tsconfig.json
-tsconfig.app.json
-tsconfig.node.json
+# Virtual environments
+.venv/
+venv/
+ENV/
+env/
 
-# Frontend package files
-package.json
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
+# Pytest
+.pytest_cache/
+
+# ===== FRONTEND =====
 node_modules/
-
-# Frontend build output
 dist/
 dist-ssr/
 .next/
 .nuxt/
 out/
-build/
 .turbo/
 .vercel/
 .parcel-cache/
 .cache/
-
-# Frontend cache and linting
+.vite/
 .eslintcache
 .stylelintcache
-.prettierignore
 
-# Frontend browser cache
-.vite/
+# ===== BUILD OUTPUT =====
+build/
+build_log*.txt
+build_errors.txt
+errors.txt
 
-# ===== GENERAL =====
-# Logs
-logs
+# ===== LOGS =====
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -57,106 +60,27 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-*.local
+# ===== DATABASE =====
+*.db
+*.sqlite
+*.sqlite3
+chroma_db/
 
-# Editor directories and files
-.vscode/*
-!.vscode/extensions.json
-.idea
-.DS_Store
+# ===== UPLOADS =====
+uploads/
+
+# ===== IDE / EDITOR =====
+.vscode/
+.idea/
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-# ===== BACKEND SPECIFIC =====
->>>>>>> frontend
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-<<<<<<< HEAD
-=======
-env/
-venv/
-ENV/
->>>>>>> frontend
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-<<<<<<< HEAD
-.env
-.env/
-
-=======
->>>>>>> frontend
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-<<<<<<< HEAD
-__pycache__
-
-# Virtual environments
-.venv/
-venv/
-ENV/
-env/
-=======
-
-# Virtual environments
-.venv
-venv
-
-# Environment variables (NEVER commit .env)
-.env
-.env.local
-.env.*.local
-
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-chroma_db/
-uploads/
-
-# Pytest
-.pytest_cache/
->>>>>>> frontend
-
-# IDE
-.idea/
-.vscode/
-<<<<<<< HEAD
 *.swp
 *.swo
 
-# ChromaDB persistence
-chroma_db/
-
-# Uploads
-uploads/
-
-# Logs
-*.log
-
-# OS files
+# ===== OS =====
 .DS_Store
-
-=======
-
-# OS
-.DS_Store
->>>>>>> frontend
 Thumbs.db
+*.local
