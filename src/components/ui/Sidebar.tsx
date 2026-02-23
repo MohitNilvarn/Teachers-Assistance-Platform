@@ -1,9 +1,10 @@
 import { Link, useLocation } from "react-router-dom"
 import { cn } from "../../lib/utils"
-import { LayoutDashboard, FileText, BookOpen, Layers, Settings, LogOut } from "lucide-react"
+import { LayoutDashboard, FileText, BookOpen, Layers, GraduationCap, LogOut } from "lucide-react"
 
 const sidebarItems = [
     { icon: LayoutDashboard, label: "Overview", href: "/dashboard" },
+    { icon: GraduationCap, label: "Courses", href: "/dashboard/courses" },
     { icon: FileText, label: "Lecture Notes", href: "/dashboard/notes" },
     { icon: BookOpen, label: "Assignments", href: "/dashboard/assignments" },
     { icon: Layers, label: "Flashcards", href: "/dashboard/flashcards" },
@@ -25,7 +26,9 @@ export function Sidebar() {
 
             <div className="flex-1 px-4 py-6 space-y-2">
                 {sidebarItems.map((item) => {
-                    const isActive = location.pathname === item.href
+                    const isActive = item.href === "/dashboard"
+                        ? location.pathname === "/dashboard"
+                        : location.pathname.startsWith(item.href)
                     return (
                         <Link
                             key={item.href}

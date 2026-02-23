@@ -1,44 +1,58 @@
 import { Button } from "../../components/ui/Button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/Card"
+import { FileText, AlertCircle, ChevronRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
+import { motion } from "framer-motion"
+import { coursesApi, lecturesApi, contentApi } from "../../lib/api"
+import type { Lecture, GeneratedContent } from "../../types"
 
-import { Upload, FileText, Mic } from "lucide-react"
-import { useState } from "react"
+interface LectureWithNotes {
+    lecture: Lecture
+    notes: GeneratedContent | null
+    courseName: string
+}
 
 export default function GenerateNotes() {
-    const [isGenerating, setIsGenerating] = useState(false)
-    const role = localStorage.getItem("role")
-    const isStudent = role === "student"
+    const [items, setItems] = useState<LectureWithNotes[]>([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState("")
 
-    const handleGenerate = () => {
-        setIsGenerating(true)
-        setTimeout(() => setIsGenerating(false), 2000)
+    useEffect(() => {
+        loadNotes()
+    }, [])
+
+    const loadNotes = async () => {
+        try {
+            setLoading(true)
+            const { courses } = await coursesApi.list()
+            const allItems: LectureWithNotes[] = []
+
+            for (const course of courses) {
+                try {
+                    const { lectures } = await lecturesApi.list(course.id)
+                    for (const lec of lectures) {
+                        try {
+                            const notes = await contentApi.getNotes(lec.id)
+                            allItems.push({ lecture: lec, notes, courseName: course.name })
+                        } catch {
+                            allItems.push({ lecture: lec, notes: null, courseName: course.name })
+                        }
+                    }
+                } catch { /* skip */ }
+            }
+            setItems(allItems)
+        } catch (err: any) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
     }
 
-    if (isStudent) {
+    if (loading) {
         return (
-            <div className="space-y-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-foreground">My Lecture Notes</h1>
-                    <p className="text-muted-foreground">Access and review your generated notes.</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Placeholder for student notes */}
-                    {[1, 2, 3].map((i) => (
-                        <Card key={i} className="hover:shadow-lg transition-all cursor-pointer border-black/5">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-lg">Lecture {i}: Introduction to Physics</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-muted-foreground mb-4">Generated on Oct {10 + i}, 2025</p>
-                                <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
-                                    <FileText className="h-4 w-4" />
-                                    View Notes
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+            <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" />
             </div>
         )
     }
@@ -46,64 +60,61 @@ export default function GenerateNotes() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-foreground">Generate Lecture Notes</h1>
-                <p className="text-muted-foreground">Upload your lecture recording or paste text to generate structured notes.</p>
+                <h1 className="text-3xl font-bold text-foreground">Lecture Notes</h1>
+                <p className="text-muted-foreground">Browse generated notes from all your lectures.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card className="border-black/10 bg-white shadow-sm">
-                    <CardHeader>
-                        <CardTitle>Input Source</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div className="border-2 border-dashed border-black/10 rounded-lg p-10 text-center hover:bg-black/5 transition-colors cursor-pointer">
-                            <Upload className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-                            <p className="text-foreground font-medium">Upload Audio or Video</p>
-                            <p className="text-sm text-muted-foreground">MP3, WAV, MP4 (Max 500MB)</p>
-                        </div>
+            {error && (
+                <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-destructive text-sm">
+                    <AlertCircle className="h-4 w-4" /> {error}
+                </div>
+            )}
 
-                        <div className="relative">
-                            <div className="absolute inset-0 flex items-center">
-                                <span className="w-full border-t border-black/10" />
-                            </div>
-                            <div className="relative flex justify-center text-xs uppercase">
-                                <span className="bg-background px-2 text-muted-foreground">Or</span>
-                            </div>
-                        </div>
-
-                        <div>
-                            <label className="text-sm font-medium text-foreground mb-2 block">Paste Transcript</label>
-                            <textarea
-                                className="w-full h-40 rounded-md border border-input bg-transparent p-3 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-black/10 resize-none"
-                                placeholder="Paste your lecture text here..."
-                            />
-                        </div>
-
-                        <Button onClick={handleGenerate} className="w-full bg-black text-white hover:bg-black/90" disabled={isGenerating}>
-                            {isGenerating ? (
-                                <>
-                                    <Mic className="mr-2 h-4 w-4 animate-pulse" />
-                                    Processing...
-                                </>
-                            ) : (
-                                <>
-                                    <FileText className="mr-2 h-4 w-4" />
-                                    Generate Notes
-                                </>
-                            )}
-                        </Button>
+            {items.length === 0 ? (
+                <Card className="border-dashed border-2 border-black/10 bg-transparent">
+                    <CardContent className="flex flex-col items-center justify-center py-16">
+                        <FileText className="h-10 w-10 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium text-foreground mb-1">No lectures yet</h3>
+                        <p className="text-sm text-muted-foreground mb-4">Create a course and add lectures to generate notes.</p>
+                        <Link to="/dashboard/courses">
+                            <Button className="bg-black text-white hover:bg-black/90">Go to Courses</Button>
+                        </Link>
                     </CardContent>
                 </Card>
-
-                <Card className="border-black/10 bg-white shadow-sm h-full opacity-50">
-                    <CardHeader>
-                        <CardTitle>Preview</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-center h-[400px]">
-                        <p className="text-muted-foreground">Generated notes will appear here</p>
-                    </CardContent>
-                </Card>
-            </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {items.map((item, i) => (
+                        <motion.div key={item.lecture.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                            <Link to={`/dashboard/lectures/${item.lecture.id}`}>
+                                <Card className="hover:shadow-lg transition-all cursor-pointer border-black/5 h-full">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-lg">{item.lecture.title}</CardTitle>
+                                        <p className="text-xs text-muted-foreground">{item.courseName}</p>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-sm text-muted-foreground mb-3">
+                                            {new Date(item.lecture.created_at).toLocaleDateString()}
+                                        </p>
+                                        {item.notes ? (
+                                            <div className="flex items-center gap-2 text-sm font-medium text-blue-600">
+                                                <FileText className="h-4 w-4" />
+                                                View Notes
+                                                <ChevronRight className="h-4 w-4 ml-auto" />
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground italic">
+                                                {item.lecture.generation_status === "generating" ? "Generating..." :
+                                                 item.lecture.transcription_status === "completed" ? "Ready to generate" :
+                                                 "Needs transcription"}
+                                            </p>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

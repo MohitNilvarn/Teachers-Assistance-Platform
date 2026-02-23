@@ -5,7 +5,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { useState } from "react"
 import { GraduationCap, School, AlertCircle } from "lucide-react"
-import { api } from "../../lib/api"
+import { authApi } from "../../lib/api"
 
 export default function LoginPage() {
     const navigate = useNavigate()
@@ -20,7 +20,6 @@ export default function LoginPage() {
         setError("")
         setIsLoading(true)
 
-        // 1. Validate Email
         if (!email.includes("@") || !email.includes(".")) {
             setError("Please enter a valid email address")
             setIsLoading(false)
@@ -28,48 +27,15 @@ export default function LoginPage() {
         }
 
         try {
-            // 2. Define the payload
-            const payload = {
-                email: email,
-                password: password,
-                role: role // "student" or "teacher"
-            }
+            const data = await authApi.login({ email, password, role })
 
-            console.log("Sending Login Payload:", payload) // Debug log
-
-            // 3. Send Request DIRECTLY (Bypassing api.js to ensure headers are correct)
-            // MAKE SURE THE URL PORT MATCHES YOUR BACKEND (e.g. 8000)
-            const response = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json", // <--- CRITICAL: This fixes the 422 Error
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify(payload)
-            })
-
-            const data = await response.json()
-
-            // 4. Handle Errors (Like the 403 Forbidden you saw in Swagger)
-            if (!response.ok) {
-                // If it's the security check (403), show that specific message
-                if (response.status === 403) {
-                    throw new Error(data.detail || "Access Denied: Wrong Portal")
-                }
-                throw new Error(data.detail || "Login failed")
-            }
-
-            // 5. Success! Save Token & User Info
             localStorage.setItem("token", data.access_token)
-
             if (data.user) {
                 localStorage.setItem("user", JSON.stringify(data.user))
-                // Save the role from the database, not just the UI
                 localStorage.setItem("role", data.user.role)
             }
 
             navigate("/dashboard")
-
         } catch (err: any) {
             console.error("Login error:", err)
             setError(err.message || "An error occurred")

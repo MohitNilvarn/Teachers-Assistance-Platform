@@ -1,43 +1,58 @@
 import { Button } from "../../components/ui/Button"
 import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/Card"
-import { Layers } from "lucide-react"
-import { useState } from "react"
+import { Layers, AlertCircle, ChevronRight } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
+import { motion } from "framer-motion"
+import { coursesApi, lecturesApi, contentApi } from "../../lib/api"
+import type { Lecture, GeneratedContent } from "../../types"
+
+interface LectureWithFlashcards {
+    lecture: Lecture
+    flashcards: GeneratedContent | null
+    courseName: string
+}
 
 export default function GenerateFlashcards() {
-    const [isGenerating, setIsGenerating] = useState(false)
-    const role = localStorage.getItem("role")
-    const isStudent = role === "student"
+    const [items, setItems] = useState<LectureWithFlashcards[]>([])
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState("")
 
-    const handleGenerate = () => {
-        setIsGenerating(true)
-        setTimeout(() => setIsGenerating(false), 2000)
+    useEffect(() => {
+        loadFlashcards()
+    }, [])
+
+    const loadFlashcards = async () => {
+        try {
+            setLoading(true)
+            const { courses } = await coursesApi.list()
+            const allItems: LectureWithFlashcards[] = []
+
+            for (const course of courses) {
+                try {
+                    const { lectures } = await lecturesApi.list(course.id)
+                    for (const lec of lectures) {
+                        try {
+                            const flashcards = await contentApi.getFlashcards(lec.id)
+                            allItems.push({ lecture: lec, flashcards, courseName: course.name })
+                        } catch {
+                            allItems.push({ lecture: lec, flashcards: null, courseName: course.name })
+                        }
+                    }
+                } catch { /* skip */ }
+            }
+            setItems(allItems)
+        } catch (err: any) {
+            setError(err.message)
+        } finally {
+            setLoading(false)
+        }
     }
 
-    if (isStudent) {
+    if (loading) {
         return (
-            <div className="space-y-8">
-                <div>
-                    <h1 className="text-3xl font-bold text-foreground">My Flashcards</h1>
-                    <p className="text-muted-foreground">Review your study decks.</p>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {/* Placeholder for student flashcards */}
-                    {[1, 2, 3, 4].map((i) => (
-                        <Card key={i} className="hover:shadow-lg transition-all cursor-pointer border-black/5">
-                            <CardHeader className="pb-2">
-                                <CardTitle className="text-lg">Deck {i}: Key Concepts</CardTitle>
-                            </CardHeader>
-                            <CardContent>
-                                <p className="text-sm text-muted-foreground mb-4">20 Cards • Mastery: {i * 20}%</p>
-                                <div className="flex items-center gap-2 text-sm font-medium text-green-600">
-                                    <Layers className="h-4 w-4" />
-                                    Study Now
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
-                </div>
+            <div className="flex items-center justify-center py-20">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-black" />
             </div>
         )
     }
@@ -45,52 +60,61 @@ export default function GenerateFlashcards() {
     return (
         <div className="space-y-8">
             <div>
-                <h1 className="text-3xl font-bold text-foreground">Generate Flashcards</h1>
-                <p className="text-muted-foreground">Create study decks from your notes for better retention.</p>
+                <h1 className="text-3xl font-bold text-foreground">Flashcards</h1>
+                <p className="text-muted-foreground">Browse generated flashcard decks from all your lectures.</p>
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <Card className="border-black/10 bg-white shadow-sm">
-                    <CardHeader>
-                        <CardTitle>Deck Settings</CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-6">
-                        <div>
-                            <label className="text-sm font-medium text-foreground mb-2 block">Source Material</label>
-                            <select className="w-full rounded-md border border-input bg-transparent p-3 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-black/10">
-                                <option>Select a lecture note...</option>
-                                <option>Introduction to React</option>
-                                <option>Advanced TypeScript Patterns</option>
-                            </select>
-                        </div>
+            {error && (
+                <div className="p-3 rounded-md bg-destructive/10 border border-destructive/20 flex items-center gap-2 text-destructive text-sm">
+                    <AlertCircle className="h-4 w-4" /> {error}
+                </div>
+            )}
 
-                        <div>
-                            <label className="text-sm font-medium text-foreground mb-2 block">Number of Cards</label>
-                            <input type="range" min="5" max="50" className="w-full accent-black" />
-                            <div className="flex justify-between text-xs text-muted-foreground mt-1">
-                                <span>5</span>
-                                <span>50</span>
-                            </div>
-                        </div>
-
-                        <Button onClick={handleGenerate} className="w-full bg-black text-white hover:bg-black/90" disabled={isGenerating}>
-                            {isGenerating ? "Generating..." : "Create Deck"}
-                        </Button>
+            {items.length === 0 ? (
+                <Card className="border-dashed border-2 border-black/10 bg-transparent">
+                    <CardContent className="flex flex-col items-center justify-center py-16">
+                        <Layers className="h-10 w-10 text-muted-foreground mb-4" />
+                        <h3 className="text-lg font-medium text-foreground mb-1">No lectures yet</h3>
+                        <p className="text-sm text-muted-foreground mb-4">Create a course and add lectures to generate flashcards.</p>
+                        <Link to="/dashboard/courses">
+                            <Button className="bg-black text-white hover:bg-black/90">Go to Courses</Button>
+                        </Link>
                     </CardContent>
                 </Card>
-
-                <Card className="border-black/10 bg-white shadow-sm h-full opacity-50">
-                    <CardHeader>
-                        <CardTitle>Preview</CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex items-center justify-center h-[400px]">
-                        <div className="text-center">
-                            <Layers className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                            <p className="text-muted-foreground">Generated flashcards will appear here</p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
+            ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {items.map((item, i) => (
+                        <motion.div key={item.lecture.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.05 }}>
+                            <Link to={`/dashboard/lectures/${item.lecture.id}`}>
+                                <Card className="hover:shadow-lg transition-all cursor-pointer border-black/5 h-full">
+                                    <CardHeader className="pb-2">
+                                        <CardTitle className="text-lg">{item.lecture.title}</CardTitle>
+                                        <p className="text-xs text-muted-foreground">{item.courseName}</p>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <p className="text-sm text-muted-foreground mb-3">
+                                            {new Date(item.lecture.created_at).toLocaleDateString()}
+                                        </p>
+                                        {item.flashcards ? (
+                                            <div className="flex items-center gap-2 text-sm font-medium text-green-600">
+                                                <Layers className="h-4 w-4" />
+                                                Study Flashcards
+                                                <ChevronRight className="h-4 w-4 ml-auto" />
+                                            </div>
+                                        ) : (
+                                            <p className="text-xs text-muted-foreground italic">
+                                                {item.lecture.generation_status === "generating" ? "Generating..." :
+                                                 item.lecture.transcription_status === "completed" ? "Ready to generate" :
+                                                 "Needs transcription"}
+                                            </p>
+                                        )}
+                                    </CardContent>
+                                </Card>
+                            </Link>
+                        </motion.div>
+                    ))}
+                </div>
+            )}
         </div>
     )
 }

@@ -53,13 +53,7 @@ export default function SignupPage() {
             navigate("/login")
         } catch (err: any) {
             console.error("Signup error:", err)
-            if (typeof err.detail === "string") {
-                setError(err.detail)
-            } else if (Array.isArray(err.detail)) {
-                setError(err.detail[0].msg)
-            } else {
-                setError(JSON.stringify(err))
-            }
+            setError(err.message || "Signup failed. Please try again.")
         } finally {
             setIsLoading(false)
         }
