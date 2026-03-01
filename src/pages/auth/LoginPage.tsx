@@ -20,7 +20,6 @@ export default function LoginPage() {
         setError("")
         setIsLoading(true)
 
-        // 1. Validate Email
         if (!email.includes("@") || !email.includes(".")) {
             setError("Please enter a valid email address")
             setIsLoading(false)
@@ -28,50 +27,19 @@ export default function LoginPage() {
         }
 
         try {
-            // 2. Define the payload
-            const payload = {
-                email: email,
-                password: password,
-                role: role // "student" or "teacher"
+            const data = await api.login({ email, password, role })
+
+            sessionStorage.setItem("token", data.access_token)
+            if (data.refresh_token) {
+                sessionStorage.setItem("refresh_token", data.refresh_token)
             }
-
-            console.log("Sending Login Payload:", payload) // Debug log
-
-            // 3. Send Request DIRECTLY (Bypassing api.js to ensure headers are correct)
-            // MAKE SURE THE URL PORT MATCHES YOUR BACKEND (e.g. 8000)
-            const response = await fetch("http://127.0.0.1:8000/api/v1/auth/login", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json", // <--- CRITICAL: This fixes the 422 Error
-                    "Accept": "application/json"
-                },
-                body: JSON.stringify(payload)
-            })
-
-            const data = await response.json()
-
-            // 4. Handle Errors (Like the 403 Forbidden you saw in Swagger)
-            if (!response.ok) {
-                // If it's the security check (403), show that specific message
-                if (response.status === 403) {
-                    throw new Error(data.detail || "Access Denied: Wrong Portal")
-                }
-                throw new Error(data.detail || "Login failed")
-            }
-
-            // 5. Success! Save Token & User Info
-            localStorage.setItem("token", data.access_token)
-
             if (data.user) {
-                localStorage.setItem("user", JSON.stringify(data.user))
-                // Save the role from the database, not just the UI
-                localStorage.setItem("role", data.user.role)
+                sessionStorage.setItem("user", JSON.stringify(data.user))
+                sessionStorage.setItem("role", data.user.role)
             }
 
             navigate("/dashboard")
-
         } catch (err: any) {
-            console.error("Login error:", err)
             setError(err.message || "An error occurred")
         } finally {
             setIsLoading(false)
@@ -82,8 +50,8 @@ export default function LoginPage() {
         <div className="min-h-screen flex items-center justify-center bg-background relative overflow-hidden p-4">
             {/* Background Elements - Light Mode */}
             <div className="absolute inset-0 z-0">
-                <div className="absolute top-0 left-1/4 w-96 h-96 bg-black/5 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-black/5 rounded-full blur-3xl animate-pulse delay-1000" />
+                <div className="absolute top-0 left-1/4 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-violet-500/5 rounded-full blur-3xl animate-pulse delay-1000" />
             </div>
 
             <motion.div
@@ -92,7 +60,7 @@ export default function LoginPage() {
                 transition={{ duration: 0.5 }}
                 className="w-full max-w-md z-10"
             >
-                <Card className="border-black/10 bg-white shadow-xl">
+                <Card className="border-violet-200/40 bg-white shadow-xl">
                     <CardHeader className="text-center">
                         <Link to="/" className="inline-block mb-4">
                             <span className="text-2xl font-bold text-foreground tracking-tighter">TAP</span>
@@ -107,8 +75,8 @@ export default function LoginPage() {
                             <div
                                 onClick={() => setRole("student")}
                                 className={`cursor-pointer rounded-lg border p-4 flex flex-col items-center justify-center gap-2 transition-all ${role === "student"
-                                    ? "bg-black text-white border-black"
-                                    : "bg-transparent text-muted-foreground border-black/10 hover:bg-black/5"
+                                    ? "bg-violet-600 text-white border-violet-600"
+                                    : "bg-transparent text-muted-foreground border-violet-200/40 hover:bg-violet-500/5"
                                     }`}
                             >
                                 <GraduationCap className="h-6 w-6" />
@@ -117,8 +85,8 @@ export default function LoginPage() {
                             <div
                                 onClick={() => setRole("teacher")}
                                 className={`cursor-pointer rounded-lg border p-4 flex flex-col items-center justify-center gap-2 transition-all ${role === "teacher"
-                                    ? "bg-black text-white border-black"
-                                    : "bg-transparent text-muted-foreground border-black/10 hover:bg-black/5"
+                                    ? "bg-violet-600 text-white border-violet-600"
+                                    : "bg-transparent text-muted-foreground border-violet-200/40 hover:bg-violet-500/5"
                                     }`}
                             >
                                 <School className="h-6 w-6" />
@@ -139,7 +107,7 @@ export default function LoginPage() {
                                 <Input
                                     type="email"
                                     placeholder="name@example.com"
-                                    className="bg-white border-input text-foreground placeholder:text-muted-foreground focus:border-black/20"
+                                    className="bg-white border-input text-foreground placeholder:text-muted-foreground focus:border-violet-400"
                                     value={email}
                                     onChange={(e) => setEmail(e.target.value)}
                                     required
@@ -154,13 +122,13 @@ export default function LoginPage() {
                                 </div>
                                 <Input
                                     type="password"
-                                    className="bg-white border-input text-foreground placeholder:text-muted-foreground focus:border-black/20"
+                                    className="bg-white border-input text-foreground placeholder:text-muted-foreground focus:border-violet-400"
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     required
                                 />
                             </div>
-                            <Button type="submit" className="w-full bg-black text-white hover:bg-black/90" disabled={isLoading}>
+                            <Button type="submit" className="w-full bg-violet-600 text-white hover:bg-violet-700" disabled={isLoading}>
                                 {isLoading ? "Signing in..." : `Sign In as ${role === "student" ? "Student" : "Teacher"}`}
                             </Button>
                         </form>

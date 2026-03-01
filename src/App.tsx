@@ -7,6 +7,9 @@ import DashboardHome from "./pages/dashboard/DashboardHome"
 import GenerateNotes from "./pages/dashboard/GenerateNotes"
 import GenerateAssignments from "./pages/dashboard/GenerateAssignments"
 import GenerateFlashcards from "./pages/dashboard/GenerateFlashcards"
+import UnitDetailPage from "./pages/dashboard/UnitDetailPage"
+import LectureContentPage from "./pages/dashboard/LectureContentPage"
+import SubjectDetailPage from "./pages/dashboard/SubjectDetailPage"
 import { ProtectedRoute } from "./components/auth/ProtectedRoute"
 
 function App() {
@@ -23,6 +26,9 @@ function App() {
             <Route path="notes" element={<GenerateNotes />} />
             <Route path="assignments" element={<GenerateAssignments />} />
             <Route path="flashcards" element={<GenerateFlashcards />} />
+            <Route path="subject/:courseId" element={<SubjectDetailPage />} />
+            <Route path="course/:courseId/unit/:unitNumber" element={<UnitDetailPage />} />
+            <Route path="course/:courseId/unit/:unitNumber/lecture/:lectureId" element={<LectureContentPage />} />
           </Route>
         </Route>
       </Routes>

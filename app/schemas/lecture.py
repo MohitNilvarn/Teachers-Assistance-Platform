@@ -27,6 +27,7 @@ class LectureCreate(BaseModel):
     title: str = Field(..., description="Lecture title", max_length=300)
     description: Optional[str] = Field(None, description="Lecture description")
     lecture_date: Optional[datetime] = Field(None, description="When the lecture was held")
+    unit_number: int = Field(..., ge=1, le=6, description="Unit number this lecture belongs to")
 
     class Config:
         json_schema_extra = {
@@ -43,6 +44,7 @@ class LectureResponse(BaseModel):
     id: str
     course_id: str
     teacher_id: str
+    unit_number: int
     title: str
     description: Optional[str] = None
     lecture_date: Optional[datetime] = None

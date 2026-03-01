@@ -43,14 +43,14 @@ const itemVariants = {
 
 export function Features() {
     return (
-        <section className="py-24 bg-neutral-50">
+        <section className="py-24 bg-violet-50">
             <div className="container mx-auto px-6">
                 <div className="text-center mb-16">
                     <motion.h2
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-3xl md:text-5xl font-bold mb-4 text-neutral-950 tracking-tight"
+                        className="text-3xl md:text-5xl font-bold mb-4 text-slate-900 tracking-tight"
                     >
                         Everything You Need to Teach Better
                     </motion.h2>
@@ -59,7 +59,7 @@ export function Features() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="text-neutral-600 max-w-2xl mx-auto"
+                        className="text-slate-500 max-w-2xl mx-auto"
                     >
                         Powerful tools designed to streamline your workflow and enhance student learning outcomes.
                     </motion.p>
@@ -74,15 +74,15 @@ export function Features() {
                 >
                     {features.map((feature, index) => (
                         <motion.div key={index} variants={itemVariants}>
-                            <Card className="h-full border-black/5 bg-white hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
+                            <Card className="h-full border-violet-200/40 bg-white hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
                                 <CardHeader>
-                                    <div className="h-12 w-12 rounded-lg bg-neutral-100 flex items-center justify-center mb-4">
-                                        <feature.icon className="h-6 w-6 text-neutral-900" />
+                                    <div className="h-12 w-12 rounded-lg bg-violet-100 flex items-center justify-center mb-4">
+                                        <feature.icon className="h-6 w-6 text-slate-800" />
                                     </div>
-                                    <CardTitle className="text-xl font-bold text-neutral-900">{feature.title}</CardTitle>
+                                    <CardTitle className="text-xl font-bold text-slate-800">{feature.title}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-neutral-600 leading-relaxed">
+                                    <p className="text-slate-500 leading-relaxed">
                                         {feature.description}
                                     </p>
                                 </CardContent>

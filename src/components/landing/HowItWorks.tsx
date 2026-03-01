@@ -55,7 +55,7 @@ export function HowItWorks() {
                         initial={{ opacity: 0, y: 20 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="text-3xl md:text-5xl font-bold mb-4 text-neutral-950 tracking-tight"
+                        className="text-3xl md:text-5xl font-bold mb-4 text-slate-900 tracking-tight"
                     >
                         How It Works
                     </motion.h2>
@@ -64,7 +64,7 @@ export function HowItWorks() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ delay: 0.2 }}
-                        className="text-neutral-600 max-w-2xl mx-auto"
+                        className="text-slate-500 max-w-2xl mx-auto"
                     >
                         Transform your teaching materials in four simple steps.
                     </motion.p>
@@ -79,15 +79,15 @@ export function HowItWorks() {
                 >
                     {steps.map((step, index) => (
                         <motion.div key={index} variants={itemVariants}>
-                            <Card className="h-full border-black/5 bg-white hover:shadow-lg transition-all duration-300 group">
+                            <Card className="h-full border-violet-200/40 bg-white hover:shadow-lg transition-all duration-300 group">
                                 <CardHeader>
-                                    <div className="h-12 w-12 rounded-full bg-neutral-50 flex items-center justify-center mb-4 mx-auto group-hover:bg-neutral-100 transition-colors">
-                                        <step.icon className="h-6 w-6 text-neutral-900" />
+                                    <div className="h-12 w-12 rounded-full bg-violet-50 flex items-center justify-center mb-4 mx-auto group-hover:bg-violet-100 transition-colors">
+                                        <step.icon className="h-6 w-6 text-slate-800" />
                                     </div>
-                                    <CardTitle className="text-center text-neutral-900 font-bold">{step.title}</CardTitle>
+                                    <CardTitle className="text-center text-slate-800 font-bold">{step.title}</CardTitle>
                                 </CardHeader>
                                 <CardContent>
-                                    <p className="text-center text-sm text-neutral-600 leading-relaxed">
+                                    <p className="text-center text-sm text-slate-500 leading-relaxed">
                                         {step.description}
                                     </p>
                                 </CardContent>

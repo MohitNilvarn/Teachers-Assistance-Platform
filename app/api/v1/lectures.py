@@ -47,12 +47,13 @@ def get_file_extension(filename: str) -> str:
 async def create_lecture(
     course_id: str,
     title: str = Form(...),
+    unit_number: int = Form(..., ge=1, le=6),
     description: Optional[str] = Form(None),
-    audio_file: Optional[UploadFile] = File(None),
+    audio_file: UploadFile = File(...),
     current_user: Dict[str, Any] = Depends(require_teacher)
 ):
     """
-    Create a new lecture with optional audio file.
+    Create a new lecture within a specific unit, with a required audio file.
     """
     # Validate course
     course = await Course.get(course_id)
@@ -62,42 +63,47 @@ async def create_lecture(
     if course.teacher_id != current_user["id"]:
         raise HTTPException(status_code=403, detail="Access denied")
     
+    # Validate unit_number exists in the course
+    valid_units = [u.number for u in course.units]
+    if valid_units and unit_number not in valid_units:
+        raise HTTPException(status_code=400, detail=f"Invalid unit number. Valid units: {valid_units}")
+    
     # Create lecture
     lecture = Lecture(
         course_id=course_id,
         teacher_id=current_user["id"],
+        unit_number=unit_number,
         title=title,
         description=description
     )
     
-    # Handle audio file if provided
-    if audio_file:
-        ext = get_file_extension(audio_file.filename)
-        if ext not in ALLOWED_AUDIO_EXTENSIONS:
-            raise HTTPException(
-                status_code=400,
-                detail=f"Audio format not allowed. Allowed: {', '.join(ALLOWED_AUDIO_EXTENSIONS)}"
-            )
+    # Handle audio file (required)
+    ext = get_file_extension(audio_file.filename)
+    if ext not in ALLOWED_AUDIO_EXTENSIONS:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Audio format not allowed. Allowed: {', '.join(ALLOWED_AUDIO_EXTENSIONS)}"
+        )
+    
+    # Save audio file
+    os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
+    file_id = str(uuid.uuid4())
+    audio_path = os.path.join(settings.UPLOAD_DIR, f"{file_id}.{ext}")
+    
+    try:
+        content = await audio_file.read()
+        with open(audio_path, "wb") as f:
+            f.write(content)
         
-        # Save audio file
-        os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
-        file_id = str(uuid.uuid4())
-        audio_path = os.path.join(settings.UPLOAD_DIR, f"{file_id}.{ext}")
+        lecture.audio_filename = audio_file.filename
+        lecture.audio_path = audio_path
+        lecture.audio_duration_seconds = get_audio_duration(audio_path)
         
-        try:
-            content = await audio_file.read()
-            with open(audio_path, "wb") as f:
-                f.write(content)
-            
-            lecture.audio_filename = audio_file.filename
-            lecture.audio_path = audio_path
-            lecture.audio_duration_seconds = get_audio_duration(audio_path)
-            
-            logger.info(f"Saved audio file: {audio_path}")
-            
-        except Exception as e:
-            logger.error(f"Audio save error: {str(e)}")
-            raise HTTPException(status_code=500, detail="Failed to save audio file")
+        logger.info(f"Saved audio file: {audio_path}")
+        
+    except Exception as e:
+        logger.error(f"Audio save error: {str(e)}")
+        raise HTTPException(status_code=500, detail="Failed to save audio file")
     
     await lecture.insert()
     logger.info(f"Lecture created: {lecture.id}")
@@ -106,6 +112,7 @@ async def create_lecture(
         id=str(lecture.id),
         course_id=lecture.course_id,
         teacher_id=lecture.teacher_id,
+        unit_number=lecture.unit_number,
         title=lecture.title,
         description=lecture.description,
         lecture_date=lecture.lecture_date,
@@ -146,6 +153,7 @@ async def list_lectures(
                 id=str(l.id),
                 course_id=l.course_id,
                 teacher_id=l.teacher_id,
+                unit_number=l.unit_number,
                 title=l.title,
                 description=l.description,
                 lecture_date=l.lecture_date,
@@ -191,6 +199,7 @@ async def get_lecture(
         id=str(lecture.id),
         course_id=lecture.course_id,
         teacher_id=lecture.teacher_id,
+        unit_number=lecture.unit_number,
         title=lecture.title,
         description=lecture.description,
         lecture_date=lecture.lecture_date,

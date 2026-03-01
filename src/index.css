@@ -4,35 +4,38 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 0 0% 0%;
+    --background: 256 33% 96%;
+    --foreground: 260 56% 26%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 260 56% 26%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 260 56% 26%;
 
-    --primary: 0 0% 0%;
+    --primary: 256 97% 67%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 256 33% 94%;
+    --secondary-foreground: 260 24% 40%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 256 33% 94%;
+    --muted-foreground: 260 24% 40%;
 
-    --accent: 0 0% 96%;
-    --accent-foreground: 0 0% 0%;
+    --accent: 256 97% 67%;
+    --accent-foreground: 0 0% 100%;
 
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 90%;
-    --ring: 0 0% 0%;
+    --border: 256 24% 89%;
+    --input: 256 24% 89%;
+    --ring: 256 97% 67%;
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
+
+    --sidebar-width: 260px;
+    --header-height: 56px;
   }
 }
 
@@ -43,6 +46,49 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-feature-settings: "rlig" 1, "calt" 1;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: hsl(256 30% 82%);
+    border-radius: 100px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(256 40% 65%);
+  }
+}
+
+@layer utilities {
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-[#E0D8F0];
+  }
+  .glass-card {
+    @apply bg-white/90 backdrop-blur-lg border border-[#E0D8F0] shadow-sm;
+  }
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-[#2D1B69] to-[#7C5CFC];
+  }
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+    background-size: 200% 100%;
+  }
+  .stat-card {
+    @apply bg-white rounded-2xl border border-[#E0D8F0] shadow-sm hover:shadow-md transition-all duration-300;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }

@@ -31,6 +31,7 @@ async def save_lecture_from_transcript(
     teacher_id: str,
     title: str,
     transcript: str,
+    unit_number: int = 1,
 ) -> str:
     """
     Save a new lecture from a real-time transcription session.
@@ -43,6 +44,7 @@ async def save_lecture_from_transcript(
     lecture_doc = {
         "course_id": course_id,
         "teacher_id": teacher_id,
+        "unit_number": unit_number,
         "title": title,
         "description": f"Live recorded lecture: {title}",
         "audio_url": None,  # No stored audio for live sessions
@@ -64,10 +66,11 @@ async def save_lecture_from_transcript(
     return lecture_id
 
 
-@router.websocket("/realtime/transcribe/{course_id}")
+@router.websocket("/realtime/transcribe/{course_id}/{unit_number}")
 async def realtime_transcribe(
     websocket: WebSocket,
     course_id: str,
+    unit_number: int = 1,
     token: str = Query(..., description="JWT authentication token"),
 ):
     """
@@ -199,6 +202,7 @@ async def realtime_transcribe(
                         teacher_id=teacher_id,
                         title=title,
                         transcript=transcript,
+                        unit_number=unit_number,
                     )
                     
                     # Send initial completion
@@ -210,8 +214,7 @@ async def realtime_transcribe(
                     
                     # Run content generation
                     try:
-                        result = await asyncio.to_thread(
-                            run_content_generation,
+                        result = await run_content_generation(
                             lecture_id=lecture_id,
                             course_id=course_id,
                             transcript=transcript,

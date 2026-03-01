@@ -18,6 +18,8 @@ from app.api.v1 import lectures
 from app.api.v1 import content
 from app.api.v1 import users
 from app.api.v1 import realtime
+from app.api.v1 import subjects
+from app.api.v1 import teachers
 
 # Setup Logging
 setup_logging()
@@ -125,6 +127,18 @@ app.include_router(
     realtime.router,
     prefix="/api/v1",
     tags=["Real-time Transcription"]
+)
+
+app.include_router(
+    subjects.router,
+    prefix="/api/v1/subjects",
+    tags=["Subjects"]
+)
+
+app.include_router(
+    teachers.router,
+    prefix="/api/v1/teachers",
+    tags=["Teachers"]
 )
 
 

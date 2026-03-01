@@ -1,11 +1,11 @@
 export function Footer() {
     return (
-        <footer className="border-t border-black/5 bg-white py-12">
+        <footer className="border-t border-[#D8CEF0] bg-white py-12">
             <div className="container mx-auto px-6">
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     <div className="space-y-4">
                         <div className="flex items-center gap-2">
-                            <div className="h-8 w-8 rounded-lg bg-black flex items-center justify-center text-white font-bold">
+                            <div className="h-8 w-8 rounded-lg bg-[#2D1B69] flex items-center justify-center text-white font-bold">
                                 T
                             </div>
                             <span className="text-xl font-bold text-foreground">TAP</span>
@@ -41,7 +41,7 @@ export function Footer() {
                         </ul>
                     </div>
                 </div>
-                <div className="mt-12 pt-8 border-t border-black/5 text-center text-sm text-muted-foreground">
+                <div className="mt-12 pt-8 border-t border-[#D8CEF0] text-center text-sm text-muted-foreground">
                     © 2025 Teacher Assistance Platform. All rights reserved.
                 </div>
             </div>

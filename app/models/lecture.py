@@ -29,6 +29,7 @@ class Lecture(Document):
     """
     course_id: str = Field(..., description="Reference to the course")
     teacher_id: str = Field(..., description="Supabase user ID of the teacher")
+    unit_number: int = Field(..., ge=1, le=6, description="Unit this lecture belongs to (1-6)")
     
     # Lecture info
     title: str = Field(..., description="Lecture title", max_length=300)

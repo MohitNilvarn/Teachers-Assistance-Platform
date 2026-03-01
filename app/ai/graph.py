@@ -26,6 +26,7 @@ from app.ai.prompts import (
     get_assignment_prompt,
     get_flashcards_prompt,
 )
+from app.ai.wikipedia_tool import get_wikipedia_context
 from app.models.content import GeneratedContent, ContentType
 from app.models.lecture import Lecture, GenerationStatus
 
@@ -46,6 +47,7 @@ class ContentGenerationState(TypedDict):
     context: str                               # combined text from teacher materials
     transcript_context: str                    # relevant transcript chunks
     teacher_material_context: str              # teacher-uploaded material chunks
+    wikipedia_context: str                     # Wikipedia fact-check context
     context_documents: List[Dict[str, Any]]
     
     # Generated content
@@ -151,7 +153,56 @@ async def retrieve_context_node(state: ContentGenerationState) -> ContentGenerat
             "context": "No additional context available.",
             "transcript_context": "",
             "teacher_material_context": "",
+            "wikipedia_context": "",
             "context_documents": [],
+        }
+
+
+async def wikipedia_fact_check_node(state: ContentGenerationState) -> ContentGenerationState:
+    """
+    Node: Fetch Wikipedia context as a fallback fact-checking source.
+
+    This runs after context retrieval. It extracts key topics from the
+    lecture title and transcript, then queries Wikipedia for reference
+    material. The Wikipedia text is NEVER the primary source — it is
+    only used to improve factual accuracy.
+    """
+    logger.info(f"Running Wikipedia fact-check for: {state['lecture_title']}")
+
+    try:
+        # Extract a few key topics from the transcript (first 500 chars)
+        # Use the lecture title + first sentence-like chunks
+        key_topics: List[str] = []
+        transcript_snippet = (state.get("transcript") or "")[:500]
+        # Simple heuristic: split transcript into phrases and pick meaningful ones
+        if transcript_snippet:
+            # Take a few key phrases from transcription
+            words = transcript_snippet.split()
+            if len(words) > 5:
+                # Grab the first meaningful phrase as a topic
+                key_topics.append(" ".join(words[:8]))
+
+        wiki_context = await get_wikipedia_context(
+            lecture_title=state["lecture_title"],
+            key_topics=key_topics if key_topics else None,
+        )
+
+        if wiki_context:
+            logger.info(
+                f"Wikipedia context retrieved ({len(wiki_context)} chars)"
+            )
+        else:
+            logger.info("No Wikipedia context found (proceeding without)")
+
+        return {
+            **state,
+            "wikipedia_context": wiki_context,
+        }
+    except Exception as e:
+        logger.warning(f"Wikipedia fact-check failed (non-fatal): {e}")
+        return {
+            **state,
+            "wikipedia_context": "",
         }
 
 
@@ -166,9 +217,15 @@ async def generate_notes_node(state: ContentGenerationState) -> ContentGeneratio
     logger.info(f"Generating notes for lecture: {state['lecture_id']}")
     
     try:
+        # Include Wikipedia context in the combined context
+        context = state["context"]
+        wiki_ctx = state.get("wikipedia_context", "")
+        if wiki_ctx:
+            context = context + "\n\n" + wiki_ctx
+
         prompt = get_notes_prompt(
             transcript=state["transcript"],
-            context=state["context"],
+            context=context,
             lecture_title=state["lecture_title"]
         )
         
@@ -203,9 +260,15 @@ async def generate_assignment_node(state: ContentGenerationState) -> ContentGene
     logger.info(f"Generating assignment for lecture: {state['lecture_id']}")
     
     try:
+        # Include Wikipedia context
+        context = state["context"]
+        wiki_ctx = state.get("wikipedia_context", "")
+        if wiki_ctx:
+            context = context + "\n\n" + wiki_ctx
+
         prompt = get_assignment_prompt(
             transcript=state["transcript"],
-            context=state["context"],
+            context=context,
             lecture_title=state["lecture_title"]
         )
         
@@ -240,9 +303,15 @@ async def generate_flashcards_node(state: ContentGenerationState) -> ContentGene
     logger.info(f"Generating flashcards for lecture: {state['lecture_id']}")
     
     try:
+        # Include Wikipedia context
+        context = state["context"]
+        wiki_ctx = state.get("wikipedia_context", "")
+        if wiki_ctx:
+            context = context + "\n\n" + wiki_ctx
+
         prompt = get_flashcards_prompt(
             transcript=state["transcript"],
-            context=state["context"],
+            context=context,
             lecture_title=state["lecture_title"]
         )
         
@@ -354,6 +423,7 @@ def build_content_generation_graph() -> StateGraph:
     
     # Add nodes
     workflow.add_node("retrieve_context", retrieve_context_node)
+    workflow.add_node("wikipedia_fact_check", wikipedia_fact_check_node)
     workflow.add_node("generate_notes", generate_notes_node)
     workflow.add_node("generate_assignment", generate_assignment_node)
     workflow.add_node("generate_flashcards", generate_flashcards_node)
@@ -361,7 +431,8 @@ def build_content_generation_graph() -> StateGraph:
     
     # Define edges (sequential flow)
     workflow.set_entry_point("retrieve_context")
-    workflow.add_edge("retrieve_context", "generate_notes")
+    workflow.add_edge("retrieve_context", "wikipedia_fact_check")
+    workflow.add_edge("wikipedia_fact_check", "generate_notes")
     workflow.add_edge("generate_notes", "generate_assignment")
     workflow.add_edge("generate_assignment", "generate_flashcards")
     workflow.add_edge("generate_flashcards", "save_content")
@@ -406,6 +477,7 @@ async def run_content_generation(
         "context": "",
         "transcript_context": "",
         "teacher_material_context": "",
+        "wikipedia_context": "",
         "context_documents": [],
         "notes": None,
         "assignment": None,

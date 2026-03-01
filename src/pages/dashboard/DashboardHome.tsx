@@ -1,20 +1,32 @@
-import { Card, CardContent, CardHeader, CardTitle } from "../../components/ui/Card"
-import { FileText, BookOpen, Layers } from "lucide-react"
-import { Link } from "react-router-dom"
-import { motion } from "framer-motion"
 import { useEffect, useState } from "react"
-import FEDashboard from "../../components/dashboard/years/FEDashboard"
-import SEDashboard from "../../components/dashboard/years/SEDashboard"
-import TEDashboard from "../../components/dashboard/years/TEDashboard"
-import BEDashboard from "../../components/dashboard/years/BEDashboard"
+import { motion } from "framer-motion"
+import {
+    FileText, Layers, GraduationCap, Calendar,
+    ArrowUpRight, BookOpen,
+} from "lucide-react"
+import StudentSubjectsDashboard from "../../components/dashboard/years/StudentSubjectsDashboard"
+import TeacherDashboard from "./TeacherDashboard"
+import { api } from "../../lib/api"
+import type { Course } from "../../types"
+
+const FADE_UP = {
+    initial: { opacity: 0, y: 12 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.3 },
+}
+
+const STAGGER = {
+    animate: { transition: { staggerChildren: 0.06 } },
+}
 
 export default function DashboardHome() {
     const [userName, setUserName] = useState("User")
     const [userYear, setUserYear] = useState("")
-    const role = localStorage.getItem("role")
+    const [courses, setCourses] = useState<Course[]>([])
+    const role = sessionStorage.getItem("role")
 
     useEffect(() => {
-        const storedUser = localStorage.getItem("user")
+        const storedUser = sessionStorage.getItem("user")
 
         if (storedUser) {
             try {
@@ -38,115 +50,139 @@ export default function DashboardHome() {
         }
     }, [])
 
+    // Fetch courses for Quick Access content
+    useEffect(() => {
+        if (role !== "student" || !userYear) return
+        async function loadCourses() {
+            try {
+                const data = await api.getCoursesByYear(userYear)
+                setCourses(data.courses)
+            } catch {
+                try {
+                    const data = await api.getCourses()
+                    setCourses(data.courses.filter(c => c.year === userYear))
+                } catch { /* noop */ }
+            }
+        }
+        loadCourses()
+    }, [role, userYear])
+
+    const isTeacher = role === "teacher"
     const isStudent = role === "student"
 
+    if (isTeacher) {
+        return <TeacherDashboard />
+    }
+
+    // IST timezone greeting
+    const hour = parseInt(new Date().toLocaleString('en-US', { hour: 'numeric', hour12: false, timeZone: 'Asia/Kolkata' }))
+    const greeting = hour < 12 ? "Good morning" : hour < 17 ? "Good afternoon" : "Good evening"
+    const yearLabels: Record<string, string> = { FE: "1st Year", SE: "2nd Year", TE: "3rd Year", BE: "4th Year" }
+    const yearLabel = yearLabels[userYear] || userYear
+
+    // Calculate content availability from courses
+    const totalSubjects = courses.length
+    const totalUnits = courses.reduce((sum, c) => sum + c.units.length, 0)
+
     return (
-        <div className="space-y-10">
-            <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-4xl font-extrabold tracking-tight text-foreground">Dashboard</h1>
-                    <p className="text-lg text-muted-foreground mt-1">
-                        Welcome back, <span className="text-foreground font-semibold">{userName}</span>.
-                    </p>
+        <motion.div className="space-y-8" initial="initial" animate="animate" variants={STAGGER}>
+            {/* Welcome Section - Clean & Minimal */}
+            <motion.div variants={FADE_UP}>
+                <div className="relative overflow-hidden rounded-2xl bg-[#2D1B69] p-7 text-white shadow-lg shadow-[#7C5CFC]/15">
+                    <div className="absolute top-0 right-0 w-80 h-80 bg-white/[0.06] rounded-full -translate-y-1/2 translate-x-1/3" />
+                    <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/[0.04] rounded-full translate-y-1/2 -translate-x-1/4" />
+
+                    <div className="relative z-10">
+                        <div className="flex items-center gap-2 mb-4">
+                            <span className="px-2.5 py-1 rounded-full bg-white/15 text-[11px] font-medium text-white/80 border border-white/15 backdrop-blur-sm">
+                                <Calendar className="h-3 w-3 inline mr-1 -mt-0.5" />
+                                {new Date().toLocaleDateString("en-IN", { weekday: "long", month: "long", day: "numeric", timeZone: "Asia/Kolkata" })}
+                            </span>
+                            {yearLabel && (
+                                <span className="px-2.5 py-1 rounded-full bg-white/15 text-[11px] font-medium text-white/80 border border-white/15 backdrop-blur-sm">
+                                    <GraduationCap className="h-3 w-3 inline mr-1 -mt-0.5" />
+                                    {yearLabel}
+                                </span>
+                            )}
+                        </div>
+                        <p className="text-white/70 text-sm">{greeting},</p>
+                        <h1 className="text-3xl font-bold tracking-tight mt-0.5">{userName}</h1>
+                        <p className="text-white/60 text-sm mt-2 max-w-md">
+                            {totalSubjects > 0
+                                ? `${totalSubjects} subject${totalSubjects !== 1 ? "s" : ""} enrolled with ${totalUnits} unit${totalUnits !== 1 ? "s" : ""} to explore.`
+                                : "Access your subjects, notes, flashcards, and assignments."}
+                        </p>
+                    </div>
                 </div>
-            </div>
+            </motion.div>
 
-            {/* Year Specific Dashboards for Students */}
-            {isStudent && userYear === "FE" && <FEDashboard />}
-            {isStudent && userYear === "SE" && <SEDashboard />}
-            {isStudent && userYear === "TE" && <TEDashboard />}
-            {isStudent && userYear === "BE" && <BEDashboard />}
+            {/* Quick Access - Fetches real data */}
+            <motion.div variants={FADE_UP}>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <QuickCard
+                        icon={FileText}
+                        title="Notes"
+                        href="/dashboard/notes"
+                        available={totalSubjects > 0}
+                        subtext={totalSubjects > 0 ? `From ${totalSubjects} subject${totalSubjects !== 1 ? "s" : ""}` : "No subjects yet"}
+                    />
+                    <QuickCard
+                        icon={BookOpen}
+                        title="Assignments"
+                        href="/dashboard/assignments"
+                        available={totalSubjects > 0}
+                        subtext={totalSubjects > 0 ? `From ${totalSubjects} subject${totalSubjects !== 1 ? "s" : ""}` : "No subjects yet"}
+                    />
+                    <QuickCard
+                        icon={Layers}
+                        title="Flashcards"
+                        href="/dashboard/flashcards"
+                        available={totalSubjects > 0}
+                        subtext={totalSubjects > 0 ? `From ${totalSubjects} subject${totalSubjects !== 1 ? "s" : ""}` : "No subjects yet"}
+                    />
+                </div>
+            </motion.div>
 
-            {/* Default Dashboard Content (shown if no specific year dashboard or for teachers) */}
-            {(!isStudent || !["FE", "SE", "TE", "BE"].includes(userYear)) && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
-                        <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-black/5 bg-white shadow-sm hover:-translate-y-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Total Notes</CardTitle>
-                                <div className="p-2 rounded-full bg-blue-50 group-hover:bg-blue-100 transition-colors">
-                                    <FileText className="h-5 w-5 text-blue-600" />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-3xl font-bold text-foreground">12</div>
-                                <p className="text-xs text-muted-foreground mt-1 font-medium text-green-600">+2 from last week</p>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
-                        <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-black/5 bg-white shadow-sm hover:-translate-y-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Assignments</CardTitle>
-                                <div className="p-2 rounded-full bg-purple-50 group-hover:bg-purple-100 transition-colors">
-                                    <BookOpen className="h-5 w-5 text-purple-600" />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-3xl font-bold text-foreground">5</div>
-                                <p className="text-xs text-muted-foreground mt-1 font-medium text-green-600">+1 from yesterday</p>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
-                        <Card className="group hover:shadow-2xl transition-all duration-300 cursor-pointer border-black/5 bg-white shadow-sm hover:-translate-y-1">
-                            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                                <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-primary transition-colors">Flashcard Decks</CardTitle>
-                                <div className="p-2 rounded-full bg-green-50 group-hover:bg-green-100 transition-colors">
-                                    <Layers className="h-5 w-5 text-green-600" />
-                                </div>
-                            </CardHeader>
-                            <CardContent>
-                                <div className="text-3xl font-bold text-foreground">8</div>
-                                <p className="text-xs text-muted-foreground mt-1 font-medium text-green-600">+3 new decks</p>
-                            </CardContent>
-                        </Card>
-                    </motion.div>
+            {/* Subjects from API */}
+            {isStudent && userYear && <StudentSubjectsDashboard year={userYear} />}
+
+            {/* Fallback */}
+            {(!isStudent || !userYear) && (
+                <div className="text-center py-16">
+                    <div className="w-14 h-14 rounded-xl bg-[#F0ECFA] flex items-center justify-center mx-auto mb-3">
+                        <GraduationCap className="h-7 w-7 text-[#9B8BB8]" />
+                    </div>
+                    <p className="font-semibold text-[#6B5B8D]">No year information found</p>
+                    <p className="text-sm text-[#B8A9D4] mt-1">Contact your administrator to set up your profile.</p>
                 </div>
             )}
+        </motion.div>
+    )
+}
 
-            <div>
-                <h2 className="text-2xl font-bold text-foreground mb-6">Quick Actions</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                    <Link to="/dashboard/notes" className="group">
-                        <Card className="h-full hover:shadow-xl transition-all duration-300 border-dashed border-2 border-black/10 bg-transparent hover:border-blue-400/50 hover:bg-blue-50/30">
-                            <CardContent className="flex flex-col items-center justify-center py-12">
-                                <div className="p-4 rounded-full bg-blue-50 group-hover:scale-110 transition-transform duration-300 mb-4">
-                                    <FileText className="h-8 w-8 text-blue-600" />
-                                </div>
-                                <h3 className="font-bold text-lg text-foreground group-hover:text-blue-700 transition-colors">{isStudent ? "View Notes" : "Generate Notes"}</h3>
-                                <p className="text-sm text-muted-foreground text-center mt-2 max-w-[200px]">
-                                    {isStudent ? "Access your study materials" : "Upload audio or text to create notes"}
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                    <Link to="/dashboard/assignments" className="group">
-                        <Card className="h-full hover:shadow-xl transition-all duration-300 border-dashed border-2 border-black/10 bg-transparent hover:border-purple-400/50 hover:bg-purple-50/30">
-                            <CardContent className="flex flex-col items-center justify-center py-12">
-                                <div className="p-4 rounded-full bg-purple-50 group-hover:scale-110 transition-transform duration-300 mb-4">
-                                    <BookOpen className="h-8 w-8 text-purple-600" />
-                                </div>
-                                <h3 className="font-bold text-lg text-foreground group-hover:text-purple-700 transition-colors">{isStudent ? "Take Quiz" : "Create Assignment"}</h3>
-                                <p className="text-sm text-muted-foreground text-center mt-2 max-w-[200px]">
-                                    {isStudent ? "Test your knowledge" : "Generate quizzes from your content"}
-                                </p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                    <Link to="/dashboard/flashcards" className="group">
-                        <Card className="h-full hover:shadow-xl transition-all duration-300 border-dashed border-2 border-black/10 bg-transparent hover:border-green-400/50 hover:bg-green-50/30">
-                            <CardContent className="flex flex-col items-center justify-center py-12">
-                                <div className="p-4 rounded-full bg-green-50 group-hover:scale-110 transition-transform duration-300 mb-4">
-                                    <Layers className="h-8 w-8 text-green-600" />
-                                </div>
-                                <h3 className="font-bold text-lg text-foreground group-hover:text-green-700 transition-colors">Make Flashcards</h3>
-                                <p className="text-sm text-muted-foreground text-center mt-2 max-w-[200px]">Turn notes into study decks</p>
-                            </CardContent>
-                        </Card>
-                    </Link>
-                </div>
+// ── Quick Access Card ──
+function QuickCard({ icon: Icon, title, href, available, subtext }: {
+    icon: typeof FileText
+    title: string
+    href: string
+    available: boolean
+    subtext: string
+}) {
+    return (
+        <a
+            href={href}
+            className="group flex items-center gap-3.5 p-4 rounded-xl bg-white border border-[#E0D8F0] hover:border-[#D8CEF0] shadow-sm hover:shadow-md transition-all duration-200 cursor-pointer"
+        >
+            <div className="w-10 h-10 rounded-lg bg-[#7C5CFC] group-hover:bg-[#6B4FDB] flex items-center justify-center transition-colors flex-shrink-0 shadow-sm shadow-[#7C5CFC]/20">
+                <Icon className="h-4.5 w-4.5 text-white" />
             </div>
-        </div>
+            <div className="flex-1 min-w-0">
+                <h3 className="text-sm font-semibold text-[#2D1B69]">{title}</h3>
+                <p className="text-[12px] text-[#B8A9D4] mt-0.5 truncate">
+                    {available ? subtext : "Unavailable"}
+                </p>
+            </div>
+            <ArrowUpRight className="h-4 w-4 text-[#C4B8E0] group-hover:text-[#7C5CFC] transition-colors flex-shrink-0" />
+        </a>
     )
 }

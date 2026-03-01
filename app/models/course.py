@@ -5,7 +5,13 @@ Course/Subject model for MongoDB.
 from datetime import datetime
 from typing import Optional, List
 from beanie import Document
-from pydantic import Field
+from pydantic import BaseModel, Field
+
+
+class Unit(BaseModel):
+    """A unit within a course (typically 6 per subject)."""
+    number: int = Field(..., ge=1, le=6, description="Unit number (1-6)")
+    title: str = Field(..., description="Unit title", max_length=200)
 
 
 class Course(Document):
@@ -18,6 +24,12 @@ class Course(Document):
     description: Optional[str] = Field(None, description="Course description")
     semester: Optional[str] = Field(None, description="Semester (e.g., 'Fall 2024')")
     year: Optional[str] = Field(None, description="Academic year (e.g., 'SE', 'TE')")
+    
+    # Subject catalog reference
+    subject_code: Optional[str] = Field(None, description="Link to predefined subject catalog code")
+    
+    # Units (6 per subject)
+    units: List[Unit] = Field(default_factory=list, description="Units for this course")
     
     # Syllabus can be uploaded as text
     syllabus_content: Optional[str] = Field(None, description="Syllabus text content")

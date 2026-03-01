@@ -23,9 +23,13 @@ async def signup(user: UserSignup):
             "role": user.role,
         }
 
-        # 2. Add 'Year' only if it exists (Students have it, Teachers might not)
+        # 2. Add 'Year' only if it exists
         if user.year:
             user_metadata["year"] = user.year  # e.g., "BE"
+
+        # 3. Add 'subject_code' for teachers
+        if user.subject_code:
+            user_metadata["subject_code"] = user.subject_code  # e.g., "BE401"
 
         # 3. Send to Supabase
         response = supabase.auth.sign_up({
@@ -82,6 +86,8 @@ async def login(user: UserLogin, response: Response):
         # Return all metadata so the frontend can display Name and Year immediately
         return {
             "access_token": session.session.access_token,
+            "refresh_token": session.session.refresh_token,
+            "expires_in": session.session.expires_in,
             "token_type": "bearer",
             "user": {
                 "id": session.user.id,
@@ -89,7 +95,8 @@ async def login(user: UserLogin, response: Response):
                 "role": actual_role,
                 "first_name": session.user.user_metadata.get("first_name", ""),
                 "last_name": session.user.user_metadata.get("last_name", ""),
-                "year": session.user.user_metadata.get("year", "")  # Send Year to frontend
+                "year": session.user.user_metadata.get("year", ""),
+                "subject_code": session.user.user_metadata.get("subject_code", ""),
             }
         }
         
@@ -99,7 +106,46 @@ async def login(user: UserLogin, response: Response):
         logger.error(f"Login error: {str(e)}")
         raise HTTPException(status_code=400, detail="Invalid email or password")
 
-# --- 3. LOGOUT ---
+# --- 3. REFRESH TOKEN ---
+@router.post("/refresh")
+async def refresh_token(request: Request):
+    """Exchange a refresh_token for a new access_token."""
+    try:
+        body = await request.json()
+        refresh = body.get("refresh_token")
+        if not refresh:
+            raise HTTPException(status_code=400, detail="refresh_token is required")
+
+        # Use Supabase to refresh the session
+        response = supabase.auth.refresh_session(refresh)
+
+        if not response.session:
+            raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+        user_metadata = response.user.user_metadata if response.user else {}
+
+        return {
+            "access_token": response.session.access_token,
+            "refresh_token": response.session.refresh_token,
+            "expires_in": response.session.expires_in,
+            "token_type": "bearer",
+            "user": {
+                "id": response.user.id if response.user else "",
+                "email": response.user.email if response.user else "",
+                "role": user_metadata.get("role", "student"),
+                "first_name": user_metadata.get("first_name", ""),
+                "last_name": user_metadata.get("last_name", ""),
+                "year": user_metadata.get("year", ""),
+                "subject_code": user_metadata.get("subject_code", ""),
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Token refresh error: {str(e)}")
+        raise HTTPException(status_code=401, detail="Failed to refresh token")
+
+# --- 4. LOGOUT ---
 @router.post("/logout")
 async def logout(response: Response, request: Request):
     try:

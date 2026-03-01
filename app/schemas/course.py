@@ -7,6 +7,12 @@ from typing import Optional, List
 from pydantic import BaseModel, Field
 
 
+class UnitSchema(BaseModel):
+    """Schema for a course unit."""
+    number: int
+    title: str
+
+
 class CourseCreate(BaseModel):
     """Schema for creating a new course."""
     name: str = Field(..., description="Course name", max_length=200)
@@ -15,6 +21,7 @@ class CourseCreate(BaseModel):
     semester: Optional[str] = Field(None, description="Semester (e.g., 'Fall 2024')")
     year: Optional[str] = Field(None, description="Academic year (e.g., 'SE', 'TE')")
     syllabus_content: Optional[str] = Field(None, description="Syllabus text content")
+    subject_code: Optional[str] = Field(None, description="Predefined subject catalog code")
 
     class Config:
         json_schema_extra = {
@@ -47,6 +54,8 @@ class CourseResponse(BaseModel):
     description: Optional[str] = None
     semester: Optional[str] = None
     year: Optional[str] = None
+    subject_code: Optional[str] = None
+    units: List[UnitSchema] = []
     syllabus_content: Optional[str] = None
     enrolled_students: List[str] = []
     created_at: datetime

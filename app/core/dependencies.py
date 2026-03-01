@@ -66,6 +66,7 @@ async def get_current_user(credentials: Optional[HTTPAuthorizationCredentials] =
             "first_name": user_metadata.get("first_name", ""),
             "last_name": user_metadata.get("last_name", ""),
             "year": user_metadata.get("year", ""),
+            "subject_code": user_metadata.get("subject_code", ""),
         }
         
     except JWTError as e:

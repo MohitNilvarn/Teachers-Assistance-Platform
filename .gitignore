@@ -1,50 +1,27 @@
-<<<<<<< HEAD
+# ===== ENVIRONMENT =====
 # Environment variables - NEVER commit these
 .env
 .env.local
 .env.production
+.env.*.local
 
-=======
-# ===== FRONTEND FILES (DO NOT MERGE WITH BACKEND) =====
-# Frontend source and config
-src/
-public/
-index.html
-vite.config.ts
-tailwind.config.js
-postcss.config.js
-eslint.config.js
-
-# Frontend TypeScript configs
-tsconfig.json
-tsconfig.app.json
-tsconfig.node.json
-
-# Frontend package files
-package.json
-package-lock.json
-yarn.lock
-pnpm-lock.yaml
-node_modules/
-
+# ===== FRONTEND =====
 # Frontend build output
 dist/
 dist-ssr/
 .next/
 .nuxt/
 out/
-build/
 .turbo/
 .vercel/
 .parcel-cache/
 .cache/
+node_modules/
 
 # Frontend cache and linting
 .eslintcache
 .stylelintcache
 .prettierignore
-
-# Frontend browser cache
 .vite/
 
 # ===== GENERAL =====
@@ -62,28 +39,23 @@ lerna-debug.log*
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-.idea
+.idea/
 .DS_Store
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
 
 # ===== BACKEND SPECIFIC =====
->>>>>>> frontend
 # Python
 __pycache__/
 *.py[cod]
 *$py.class
 *.so
 .Python
-<<<<<<< HEAD
-=======
-env/
-venv/
-ENV/
->>>>>>> frontend
 build/
 develop-eggs/
 dist/
@@ -94,35 +66,17 @@ lib/
 lib64/
 parts/
 sdist/
-<<<<<<< HEAD
-.env
-.env/
-
-=======
->>>>>>> frontend
 var/
 wheels/
 *.egg-info/
 .installed.cfg
 *.egg
-<<<<<<< HEAD
-__pycache__
 
 # Virtual environments
 .venv/
 venv/
 ENV/
 env/
-=======
-
-# Virtual environments
-.venv
-venv
-
-# Environment variables (NEVER commit .env)
-.env
-.env.local
-.env.*.local
 
 # Database files
 *.db
@@ -133,30 +87,6 @@ uploads/
 
 # Pytest
 .pytest_cache/
->>>>>>> frontend
-
-# IDE
-.idea/
-.vscode/
-<<<<<<< HEAD
-*.swp
-*.swo
-
-# ChromaDB persistence
-chroma_db/
-
-# Uploads
-uploads/
-
-# Logs
-*.log
-
-# OS files
-.DS_Store
-
-=======
 
 # OS
-.DS_Store
->>>>>>> frontend
 Thumbs.db

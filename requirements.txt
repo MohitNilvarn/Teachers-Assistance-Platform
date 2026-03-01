@@ -65,6 +65,7 @@ flower
 # API Clients
 groq
 httpx
+wikipedia-api
 
 # Monitoring & Logging
 loguru
