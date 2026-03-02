@@ -37,9 +37,9 @@ export function DashboardLayout() {
     const crumbs = getBreadcrumbs(location.pathname)
 
     return (
-        <div className="min-h-screen bg-[#F0ECFA] text-foreground flex">
+        <div className="h-screen bg-[#F0ECFA] text-foreground flex overflow-hidden">
             <Sidebar />
-            <div className="flex-1 ml-[var(--sidebar-width)] flex flex-col h-screen">
+            <div className="flex-1 ml-[var(--sidebar-width)] flex flex-col h-full overflow-hidden">
                 {/* Fixed Top Header */}
                 <header className="h-[var(--header-height)] flex items-center justify-between px-8 bg-white/80 backdrop-blur-md border-b border-[#E0D8F0] flex-shrink-0 z-30">
                     {/* Breadcrumbs */}
@@ -73,7 +73,7 @@ export function DashboardLayout() {
                 </header>
 
                 {/* Scrollable Main Content */}
-                <main className="flex-1 px-8 py-6 overflow-y-auto">
+                <main className="flex-1 min-h-0 px-8 py-6 overflow-y-auto">
                     <div className="max-w-6xl mx-auto">
                         <Outlet />
                     </div>

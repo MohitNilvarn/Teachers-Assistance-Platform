@@ -7,6 +7,7 @@ import type {
     ContentList,
     GeneratedContent,
     Course,
+    RecentContentListResponse,
 } from "../types"
 
 const API_URL = import.meta.env.VITE_API_URL || "http://127.0.0.1:8000/api/v1"
@@ -300,6 +301,23 @@ export const api = {
         const res = await authFetch(`${API_URL}/lectures/${lectureId}/flashcards`, { headers: getHeaders() })
         if (res.status === 200) return handleResponse<GeneratedContent>(res)
         return null
+    },
+
+    // ── Recent Content ───────────────────────
+
+    async getRecentNotes(): Promise<RecentContentListResponse> {
+        const res = await authFetch(`${API_URL}/recent/notes`, { headers: getHeaders() })
+        return handleResponse<RecentContentListResponse>(res)
+    },
+
+    async getRecentAssignments(): Promise<RecentContentListResponse> {
+        const res = await authFetch(`${API_URL}/recent/assignments`, { headers: getHeaders() })
+        return handleResponse<RecentContentListResponse>(res)
+    },
+
+    async getRecentFlashcards(): Promise<RecentContentListResponse> {
+        const res = await authFetch(`${API_URL}/recent/flashcards`, { headers: getHeaders() })
+        return handleResponse<RecentContentListResponse>(res)
     },
 
     // ── Materials ────────────────────────────

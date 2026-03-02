@@ -105,6 +105,26 @@ export interface ContentList {
   flashcards?: GeneratedContent
 }
 
+// ── Recent Content ───────────────────────────
+
+export interface RecentContentItem {
+  id: string
+  lecture_id: string
+  course_id: string
+  content_type: ContentType
+  title: string
+  lecture_title: string
+  course_name: string
+  content: Record<string, any>
+  created_at: string
+  updated_at: string
+}
+
+export interface RecentContentListResponse {
+  items: RecentContentItem[]
+  total: number
+}
+
 // ── Teacher Dashboard ────────────────────────
 
 export interface UnitLecture {

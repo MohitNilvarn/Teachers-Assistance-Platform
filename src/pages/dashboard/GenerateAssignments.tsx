@@ -1,6 +1,9 @@
-import { BookOpen, CheckSquare, Sparkles, PenLine } from "lucide-react"
-import { useState } from "react"
+import { BookOpen, CheckSquare, Sparkles, PenLine, Loader2 } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
+import { api } from "../../lib/api"
+import type { RecentContentItem } from "../../types"
 
 const FADE_UP = { hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }
 const STAGGER = { visible: { transition: { staggerChildren: 0.08 } } }
@@ -8,12 +11,27 @@ const STAGGER = { visible: { transition: { staggerChildren: 0.08 } } }
 export default function GenerateAssignments() {
     const [isGenerating, setIsGenerating] = useState(false)
     const [selectedType, setSelectedType] = useState<"mcq" | "essay">("mcq")
+    const [recentAssignments, setRecentAssignments] = useState<RecentContentItem[]>([])
+    const [loading, setLoading] = useState(true)
     const role = sessionStorage.getItem("role")
     const isStudent = role === "student"
+    const navigate = useNavigate()
+
+    useEffect(() => {
+        api.getRecentAssignments()
+            .then((data) => setRecentAssignments(data.items))
+            .catch(() => {})
+            .finally(() => setLoading(false))
+    }, [])
 
     const handleGenerate = () => {
         setIsGenerating(true)
         setTimeout(() => setIsGenerating(false), 2000)
+    }
+
+    const formatDate = (iso: string) => {
+        const d = new Date(iso)
+        return d.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
     }
 
     if (isStudent) {
@@ -24,23 +42,40 @@ export default function GenerateAssignments() {
                     <p className="text-[#9B8BB8] mt-1">Complete your pending quizzes and homework.</p>
                 </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-                    {[1, 2].map((i) => (
-                        <motion.div key={i} variants={FADE_UP} whileHover={{ y: -4 }}>
-                            <div className="bg-white rounded-2xl border border-[#E0D8F0] shadow-sm hover:shadow-md hover:border-[#E0D8F0] transition-all duration-300 overflow-hidden cursor-pointer group">
-                                <div className="h-1.5 bg-[#7C5CFC]" />
-                                <div className="p-5">
-                                    <h3 className="text-lg font-bold text-[#2D1B69] group-hover:text-[#2D1B69] transition-colors">Assignment {i}: React Fundamentals</h3>
-                                    <p className="text-xs text-[#B8A9D4] mt-1.5">Due: Oct {15 + i}, 2025</p>
-                                    <div className="flex items-center gap-2 text-sm font-semibold text-[#5B4A82] mt-4 group-hover:gap-3 transition-all">
-                                        <CheckSquare className="h-4 w-4" />
-                                        Start Quiz
+                {loading ? (
+                    <div className="flex items-center justify-center py-20">
+                        <Loader2 className="h-8 w-8 animate-spin text-[#7C5CFC]" />
+                    </div>
+                ) : recentAssignments.length === 0 ? (
+                    <div className="flex flex-col items-center justify-center py-20">
+                        <div className="w-14 h-14 rounded-xl bg-[#F0ECFA] flex items-center justify-center mb-3">
+                            <CheckSquare className="h-6 w-6 text-[#B8A9D4]" />
+                        </div>
+                        <p className="text-sm text-[#B8A9D4] font-medium">No assignments generated yet</p>
+                    </div>
+                ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                        {recentAssignments.map((item) => (
+                            <motion.div key={item.id} variants={FADE_UP} whileHover={{ y: -4 }}>
+                                <div
+                                    onClick={() => navigate(`/dashboard/lectures/${item.lecture_id}`)}
+                                    className="bg-white rounded-2xl border border-[#E0D8F0] shadow-sm hover:shadow-md hover:border-[#E0D8F0] transition-all duration-300 overflow-hidden cursor-pointer group"
+                                >
+                                    <div className="h-1.5 bg-[#7C5CFC]" />
+                                    <div className="p-5">
+                                        <h3 className="text-lg font-bold text-[#2D1B69] group-hover:text-[#2D1B69] transition-colors truncate">{item.title || item.lecture_title}</h3>
+                                        <p className="text-xs text-[#9B8BB8] mt-0.5 truncate">{item.course_name}</p>
+                                        <p className="text-xs text-[#B8A9D4] mt-1.5">Generated on {formatDate(item.created_at)}</p>
+                                        <div className="flex items-center gap-2 text-sm font-semibold text-[#5B4A82] mt-4 group-hover:gap-3 transition-all">
+                                            <CheckSquare className="h-4 w-4" />
+                                            Start Quiz
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </motion.div>
-                    ))}
-                </div>
+                            </motion.div>
+                        ))}
+                    </div>
+                )}
             </motion.div>
         )
     }

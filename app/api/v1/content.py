@@ -16,6 +16,8 @@ from app.schemas.content import (
     SemanticSearchRequest,
     SearchResultItem,
     SemanticSearchResponse,
+    RecentContentItem,
+    RecentContentListResponse,
 )
 from app.models.course import Course
 from app.models.lecture import Lecture
@@ -29,6 +31,40 @@ from app.services.vector_store import (
 
 logger = get_logger("TAP.Content")
 router = APIRouter()
+
+
+# =====================
+# Recent Content Endpoints
+# =====================
+
+@router.get("/recent/notes", response_model=RecentContentListResponse)
+async def get_recent_notes(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    Get the 6 most recently generated notes across all accessible courses.
+    """
+    return await _get_recent_content(ModelContentType.NOTES, current_user)
+
+
+@router.get("/recent/assignments", response_model=RecentContentListResponse)
+async def get_recent_assignments(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    Get the 6 most recently generated assignments across all accessible courses.
+    """
+    return await _get_recent_content(ModelContentType.ASSIGNMENT, current_user)
+
+
+@router.get("/recent/flashcards", response_model=RecentContentListResponse)
+async def get_recent_flashcards(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    Get the 6 most recently generated flashcards across all accessible courses.
+    """
+    return await _get_recent_content(ModelContentType.FLASHCARDS, current_user)
 
 
 @router.get("/lectures/{lecture_id}/notes", response_model=Optional[ContentResponse])
@@ -326,6 +362,64 @@ async def _verify_course_access(course_id: str, current_user: Dict[str, Any]):
     
     if current_user["role"] == "student" and current_user["id"] not in course.enrolled_students:
         raise HTTPException(status_code=403, detail="Not enrolled in this course")
+
+
+async def _get_recent_content(
+    content_type: ModelContentType,
+    current_user: Dict[str, Any],
+    limit: int = 6
+) -> RecentContentListResponse:
+    """Helper to fetch recent content of a specific type for the current user."""
+    user_id = current_user["id"]
+    role = current_user["role"]
+
+    # Get courses the user has access to
+    if role == "teacher":
+        courses = await Course.find(Course.teacher_id == user_id).to_list()
+    else:
+        courses = await Course.find(
+            {"enrolled_students": user_id}
+        ).to_list()
+
+    if not courses:
+        return RecentContentListResponse(items=[], total=0)
+
+    course_ids = [str(c.id) for c in courses]
+    course_map = {str(c.id): c.name for c in courses}
+
+    # Fetch recent content of the given type from those courses
+    content_items = await GeneratedContent.find(
+        {"course_id": {"$in": course_ids}, "content_type": content_type.value},
+    ).sort(-GeneratedContent.created_at).limit(limit).to_list()
+
+    if not content_items:
+        return RecentContentListResponse(items=[], total=0)
+
+    # Gather lecture titles in batch
+    lecture_ids = list({c.lecture_id for c in content_items})
+    lecture_map: Dict[str, str] = {}
+    for lid in lecture_ids:
+        lec = await Lecture.get(lid)
+        if lec:
+            lecture_map[lid] = lec.title
+
+    items = []
+    for c in content_items:
+        title = c.content.get("title", "")
+        items.append(RecentContentItem(
+            id=str(c.id),
+            lecture_id=c.lecture_id,
+            course_id=c.course_id,
+            content_type=ContentType(c.content_type.value),
+            title=title,
+            lecture_title=lecture_map.get(c.lecture_id, ""),
+            course_name=course_map.get(c.course_id, ""),
+            content=c.content,
+            created_at=c.created_at,
+            updated_at=c.updated_at,
+        ))
+
+    return RecentContentListResponse(items=items, total=len(items))
 
 
 def _to_response(content: GeneratedContent) -> ContentResponse:

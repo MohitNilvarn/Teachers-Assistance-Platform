@@ -131,6 +131,26 @@ class GenerationStatusResponse(BaseModel):
 # =====================
 # Semantic Search Schemas
 # =====================
+class RecentContentItem(BaseModel):
+    """A single recent content item with lecture info."""
+    id: str
+    lecture_id: str
+    course_id: str
+    content_type: ContentType
+    title: str = ""
+    lecture_title: str = ""
+    course_name: str = ""
+    content: Dict[str, Any] = {}
+    created_at: datetime
+    updated_at: datetime
+
+
+class RecentContentListResponse(BaseModel):
+    """Response for recent content list."""
+    items: List[RecentContentItem]
+    total: int
+
+
 class SemanticSearchRequest(BaseModel):
     """Request for semantic search within a lecture or course."""
     query: str = Field(..., description="Natural language search query", min_length=1, max_length=1000)
