@@ -28,6 +28,7 @@ class MaterialUploadResponse(BaseModel):
     id: str = Field(..., description="Material ID")
     course_id: str
     lecture_id: Optional[str] = None
+    unit_number: Optional[int] = None
     filename: str
     file_type: MaterialType
     processing_status: ProcessingStatus
@@ -43,6 +44,7 @@ class MaterialResponse(BaseModel):
     course_id: str
     teacher_id: str
     lecture_id: Optional[str] = None
+    unit_number: Optional[int] = None
     filename: str
     file_type: MaterialType
     file_size_bytes: Optional[int] = None

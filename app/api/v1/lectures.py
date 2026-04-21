@@ -368,6 +368,12 @@ async def generate_content(
             "status": "completed"
         }
     
+    # If force-regenerating, delete old generated content first
+    if request.force:
+        from app.models.content import GeneratedContent as GC
+        deleted = await GC.find(GC.lecture_id == str(lecture.id)).delete()
+        logger.info(f"Force-regenerate: deleted old content for lecture {lecture_id}")
+
     # Update status
     lecture.generation_status = ModelGenerationStatus.GENERATING
     await lecture.save()

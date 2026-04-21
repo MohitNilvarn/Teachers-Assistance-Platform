@@ -5,7 +5,7 @@ import {
     GraduationCap, Loader2, BookOpen, ArrowRight,
 } from "lucide-react"
 import { api } from "../../../lib/api"
-import type { Course } from "../../../types"
+import type { Course, Subject } from "../../../types"
 
 interface Props {
     year: string
@@ -18,15 +18,36 @@ export default function StudentSubjectsDashboard({ year }: Props) {
     useEffect(() => {
         async function load() {
             try {
+                // Auto-enroll triggers course auto-creation for all catalog subjects
                 await api.autoEnrollByYear().catch(() => {})
-                const data = await api.getCoursesByYear(year)
-                setCourses(data.courses)
-            } catch {
-                try {
-                    const data = await api.getCourses()
-                    setCourses(data.courses.filter(c => c.year === year))
-                } catch { /* noop */ }
-            } finally {
+
+                // Fetch catalog to know valid subject codes
+                const [subjects, coursesData] = await Promise.all([
+                    api.getSubjects(year).catch(() => [] as Subject[]),
+                    api.getCoursesByYear(year)
+                        .catch(() => api.getCourses().then(d => ({
+                            courses: d.courses.filter(c => c.year === year),
+                            total: 0,
+                        })))
+                        .catch(() => ({ courses: [] as Course[], total: 0 })),
+                ])
+
+                // Only show courses that match catalog subject codes
+                const catalogCodes = new Set(subjects.map(s => s.code))
+                const filtered = coursesData.courses.filter(
+                    c => c.subject_code && catalogCodes.has(c.subject_code)
+                )
+
+                // Sort by subject code to keep catalog order
+                const codeOrder = subjects.map(s => s.code)
+                filtered.sort((a, b) => {
+                    const ai = codeOrder.indexOf(a.subject_code || "")
+                    const bi = codeOrder.indexOf(b.subject_code || "")
+                    return ai - bi
+                })
+
+                setCourses(filtered)
+            } catch { /* noop */ } finally {
                 setLoading(false)
             }
         }

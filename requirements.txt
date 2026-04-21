@@ -34,7 +34,9 @@ langgraph
 sentence-transformers
 
 # Document Processing
-pypdf
+PyMuPDF
+pytesseract
+Pillow
 python-docx
 python-pptx
 openpyxl

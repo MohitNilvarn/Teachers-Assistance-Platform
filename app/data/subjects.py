@@ -68,13 +68,13 @@ SUBJECTS: Dict[str, Dict[int, List[Dict[str, str]]]] = {
             {"code": "BE401", "name": "Radiation & Microwave Theory"},
             {"code": "BE402", "name": "VLSI Design and Technology"},
             {"code": "BE403", "name": "Cloud Computing"},
-            {"code": "BE404", "name": "Elective - 3"},
-            {"code": "BE405", "name": "Elective - 4"},
+            {"code": "BE404", "name": "Data Mining"},
+            {"code": "BE405", "name": "Modernized IoT"},
         ],
         8: [
             {"code": "BE406", "name": "Fiber Optic Communication"},
-            {"code": "BE407", "name": "Elective - 5"},
-            {"code": "BE408", "name": "Elective - 6"},
+            {"code": "BE407", "name": "Mobile Computing"},
+            {"code": "BE408", "name": "Digital Marketing"},
         ],
     },
 }

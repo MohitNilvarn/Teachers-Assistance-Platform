@@ -333,6 +333,35 @@ export const api = {
         return handleResponse<{ id: string; filename: string; processing_status: string }>(res)
     },
 
+    // ── Knowledge Base (unit-level materials) ──
+
+    async getUnitMaterials(courseId: string, unitNumber: number) {
+        const res = await authFetch(`${API_URL}/${courseId}/units/${unitNumber}/materials`, { headers: getHeaders() })
+        return handleResponse<{ materials: Array<{id:string;filename:string;file_type:string;processing_status:string;processing_error?:string;created_at:string}>; total: number }>(res)
+    },
+
+    async uploadUnitMaterial(courseId: string, unitNumber: number, file: File) {
+        const formData = new FormData()
+        formData.append("file", file)
+        const res = await authFetch(`${API_URL}/${courseId}/units/${unitNumber}/materials`, {
+            method: "POST",
+            headers: getAuthHeaders(),
+            body: formData,
+        })
+        return handleResponse<{ id: string; filename: string; processing_status: string; message: string }>(res)
+    },
+
+    async deleteMaterial(materialId: string) {
+        const res = await authFetch(`${API_URL}/materials/${materialId}`, {
+            method: "DELETE",
+            headers: getHeaders(),
+        })
+        if (!res.ok) {
+            const text = await res.text()
+            throw new Error(text || "Delete failed")
+        }
+    },
+
     // ── Real-time Transcription ──────────────
 
     /**

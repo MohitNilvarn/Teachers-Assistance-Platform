@@ -10,6 +10,9 @@ import { api } from "../../lib/api"
 import type { GeneratedContent } from "../../types"
 import { LatexRenderer, LatexBlock } from "../../components/ui/LatexRenderer"
 
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Using any for dynamic API content structure which varies based on generation type
+
 type Tab = "notes" | "assignment" | "flashcards"
 
 export default function LectureContentPage() {
@@ -46,8 +49,9 @@ export default function LectureContentPage() {
                     const lec = await api.getLecture(lectureId!)
                     setLectureTitle(lec.title)
                 } catch { /* ignore */ }
-            } catch (err: any) {
-                setError(err.message || "Failed to load content")
+            } catch (err: Error | unknown) {
+                const message = err instanceof Error ? err.message : "Failed to load content"
+                setError(message)
             } finally {
                 setLoading(false)
             }
@@ -196,20 +200,20 @@ function NotesViewer({ content }: { content: GeneratedContent | null }) {
                         <div className="w-10 h-10 rounded-lg bg-[#7C5CFC] flex items-center justify-center flex-shrink-0">
                             <FileText className="h-5 w-5 text-white" />
                         </div>
-                        {title}
+                        {title || ""}
                     </h2>
 
                     {summary && (
                         <div className="mt-4 p-4 rounded-xl bg-[#F0ECFA]/40 border border-[#E0D8F0]">
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[#B8A9D4] mb-1.5">Summary</p>
-                            <LatexBlock text={summary} className="text-[#5B4A82] leading-relaxed text-[15px]" />
+                            <LatexBlock text={String(summary)} className="text-[#5B4A82] leading-relaxed text-[15px]" />
                         </div>
                     )}
 
                     {overview && (
                         <div className="mt-4 p-4 rounded-xl bg-[#F0ECFA]/40 border border-[#E0D8F0]">
                             <p className="text-[10px] font-bold uppercase tracking-wider text-[#9B8BB8] mb-1.5">Overview</p>
-                            <LatexBlock text={overview} className="text-[#5B4A82] leading-relaxed text-[15px]" />
+                            <LatexBlock text={String(overview)} className="text-[#5B4A82] leading-relaxed text-[15px]" />
                         </div>
                     )}
                 </div>

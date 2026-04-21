@@ -29,8 +29,9 @@ export default function SubjectDetailPage() {
                 } else {
                     setError("Course not found")
                 }
-            } catch (err: any) {
-                setError(err.message || "Failed to load course")
+            } catch (err: Error | unknown) {
+                const message = err instanceof Error ? err.message : "Failed to load course"
+                setError(message)
             } finally {
                 setLoading(false)
             }

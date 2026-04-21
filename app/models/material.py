@@ -40,6 +40,14 @@ class Material(Document):
         description="Reference to the lecture this material belongs to. "
                     "When set, the material's embeddings are scoped to this lecture."
     )
+    unit_number: Optional[int] = Field(
+        None,
+        ge=1,
+        le=6,
+        description="Unit number (1-6) this material belongs to. "
+                    "When set, the material is available as context for all "
+                    "lectures within this unit."
+    )
     
     # File info
     filename: str = Field(..., description="Original filename")

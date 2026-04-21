@@ -43,6 +43,7 @@ class Lecture(Document):
     
     # Transcript
     transcript: Optional[str] = Field(None, description="Full transcript text")
+    transcript_summary: Optional[str] = Field(None, description="AI-generated summary of transcript (cached)")
     transcript_segments: List[Dict[str, Any]] = Field(
         default_factory=list,
         description="Transcript with timestamps [{start, end, text}]"

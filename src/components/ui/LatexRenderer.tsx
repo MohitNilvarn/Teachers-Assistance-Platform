@@ -33,7 +33,7 @@ function renderLatexToHTML(input: string): string {
     // We split on $$...$$ first (display math), then $...$ (inline math).
     // Regex: split by display math first to avoid greedy matching.
     const parts: string[] = []
-    let remaining = input
+    const remaining = input
 
     // Pattern for display math: $$...$$
     const displayRe = /\$\$([\s\S]+?)\$\$/g

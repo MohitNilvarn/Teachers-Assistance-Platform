@@ -39,8 +39,9 @@ export default function LoginPage() {
             }
 
             navigate("/dashboard")
-        } catch (err: any) {
-            setError(err.message || "An error occurred")
+        } catch (err: Error | unknown) {
+            const message = err instanceof Error ? err.message : "An error occurred"
+            setError(message)
         } finally {
             setIsLoading(false)
         }

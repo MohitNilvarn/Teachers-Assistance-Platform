@@ -37,6 +37,7 @@ export default function DashboardHome() {
                     "User"
 
                 if (firstName && firstName !== "User") {
+                    // eslint-disable-next-line react-hooks/set-state-in-effect
                     setUserName(firstName)
                 }
 

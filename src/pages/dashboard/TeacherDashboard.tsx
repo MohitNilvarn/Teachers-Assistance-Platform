@@ -41,13 +41,15 @@ export default function TeacherDashboard() {
     const [subjectPick, setSubjectPick] = useState("")
     const [selecting, setSelecting] = useState(false)
 
+
     const fetchDashboard = async () => {
         try {
             setLoading(true)
             const result = await api.teacherDashboard()
             setData(result)
-        } catch (err: any) {
-            setError(err.message || "Failed to load dashboard")
+        } catch (err: Error | unknown) {
+            const message = err instanceof Error ? err.message : "Failed to load dashboard"
+            setError(message)
         } finally {
             setLoading(false)
         }
@@ -70,8 +72,9 @@ export default function TeacherDashboard() {
         try {
             await api.teacherSelectSubject(subjectPick)
             await fetchDashboard()
-        } catch (err: any) {
-            setError(err.message || "Failed to select subject")
+        } catch (err: Error | unknown) {
+            const message = err instanceof Error ? err.message : "Failed to select subject"
+            setError(message)
         } finally {
             setSelecting(false)
         }
@@ -157,7 +160,7 @@ export default function TeacherDashboard() {
                                         <option value="">Choose your subject</option>
                                         {subjects.map(s => (
                                             <option key={s.code} value={s.code}>
-                                                {s.name} ({s.code}) — Sem {s.semester}
+                                                {s.name} ({s.code}) ï¿½ Sem {s.semester}
                                             </option>
                                         ))}
                                     </select>
@@ -232,7 +235,7 @@ export default function TeacherDashboard() {
                                     {course?.subject_code}
                                 </span>
                                 <span className="text-sm text-[#B8A9D4]">
-                                    {course?.year} · Semester {course?.semester}
+                                    {course?.year} ï¿½ Semester {course?.semester}
                                 </span>
                             </div>
                         </div>
@@ -385,7 +388,7 @@ export default function TeacherDashboard() {
                                             ) : (
                                                 <div className="flex items-center gap-2 text-[12px] text-[#B8A9D4] pt-4 mt-4 border-t border-[#E0D8F0]">
                                                     <Radio className="h-3 w-3" />
-                                                    No lectures yet — click to add
+                                                    No lectures yet ï¿½ click to add
                                                 </div>
                                             )}
                                         </div>

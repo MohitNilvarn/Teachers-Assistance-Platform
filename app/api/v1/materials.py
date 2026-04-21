@@ -2,11 +2,9 @@
 """
 Study material upload and management endpoints.
 
-Materials can be uploaded either at the **course** level (general reference)
-or tied to a **specific lecture**.  When a ``lecture_id`` is provided the
-material's vector embeddings are stored under that lecture so that the AI
-content-generation pipeline only retrieves teacher-provided context for that
-particular lecture — keeping the LLM tightly grounded.
+Materials can be uploaded at the **unit** level (Knowledge Base for that unit)
+or tied to a **specific lecture**.  Unit-level materials are available as
+context for ALL lectures within that unit during AI content generation.
 """
 import os
 import uuid
@@ -47,7 +45,7 @@ def _get_file_extension(filename: str) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Upload – supports both course-level and lecture-level materials
+# Upload – supports unit-level and lecture-level materials
 # ---------------------------------------------------------------------------
 
 @router.post(
@@ -84,6 +82,49 @@ async def upload_material_for_lecture(
         file=file,
         course_id=lecture.course_id,
         lecture_id=str(lecture.id),
+        unit_number=lecture.unit_number,
+        teacher_id=current_user["id"],
+    )
+
+
+@router.post(
+    "/{course_id}/units/{unit_number}/materials",
+    response_model=MaterialUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Upload material to a unit's Knowledge Base",
+)
+async def upload_unit_material(
+    course_id: str,
+    unit_number: int,
+    file: UploadFile = File(...),
+    current_user: Dict[str, Any] = Depends(require_teacher),
+):
+    """
+    Upload study material to a **unit's Knowledge Base**.
+
+    The material is scoped to the specified unit. During AI content
+    generation, all lectures within this unit will have access to these
+    materials as additional context.
+    """
+    course = await Course.get(course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    if course.teacher_id != current_user["id"]:
+        raise HTTPException(status_code=403, detail="Access denied")
+
+    # Validate unit number exists in this course
+    valid_units = [u.number for u in course.units]
+    if unit_number not in valid_units:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Unit {unit_number} does not exist in this course. Valid units: {valid_units}",
+        )
+
+    return await _process_and_save_material(
+        file=file,
+        course_id=course_id,
+        lecture_id=None,
+        unit_number=unit_number,
         teacher_id=current_user["id"],
     )
 
@@ -115,6 +156,7 @@ async def upload_material(
 
     # Validate the lecture belongs to this course when provided
     resolved_lecture_id: Optional[str] = None
+    resolved_unit_number: Optional[int] = None
     if lecture_id:
         lecture = await Lecture.get(lecture_id)
         if not lecture:
@@ -125,11 +167,13 @@ async def upload_material(
                 detail="Lecture does not belong to this course",
             )
         resolved_lecture_id = str(lecture.id)
+        resolved_unit_number = lecture.unit_number
 
     return await _process_and_save_material(
         file=file,
         course_id=course_id,
         lecture_id=resolved_lecture_id,
+        unit_number=resolved_unit_number,
         teacher_id=current_user["id"],
     )
 
@@ -167,6 +211,33 @@ async def list_lecture_materials(
 
 
 @router.get(
+    "/{course_id}/units/{unit_number}/materials",
+    response_model=MaterialListResponse,
+    summary="List materials for a specific unit (Knowledge Base)",
+)
+async def list_unit_materials(
+    course_id: str,
+    unit_number: int,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    List all Knowledge Base materials for a specific unit within a course.
+    """
+    await _verify_course_access(course_id, current_user)
+
+    materials = await Material.find(
+        Material.course_id == course_id,
+        Material.unit_number == unit_number,
+        Material.lecture_id == None,  # Unit-level only (not lecture-specific)
+    ).to_list()
+
+    return MaterialListResponse(
+        materials=[_to_response(m, truncate_content=True) for m in materials],
+        total=len(materials),
+    )
+
+
+@router.get(
     "/{course_id}/materials",
     response_model=MaterialListResponse,
     summary="List all materials for a course",
@@ -176,7 +247,7 @@ async def list_materials(
     current_user: Dict[str, Any] = Depends(get_current_user),
 ):
     """
-    List all materials for a course (both lecture-specific and course-level).
+    List all materials for a course (both lecture-specific and unit-level).
     """
     await _verify_course_access(course_id, current_user)
 
@@ -246,6 +317,7 @@ async def _process_and_save_material(
     file: UploadFile,
     course_id: str,
     lecture_id: Optional[str],
+    unit_number: Optional[int],
     teacher_id: str,
 ) -> MaterialUploadResponse:
     """
@@ -253,8 +325,9 @@ async def _process_and_save_material(
 
     When ``lecture_id`` is not None the embeddings are stored with that
     lecture_id so that vector search scoped to the lecture will find them.
-    When ``lecture_id`` is None a synthetic ``course_material_{id}`` value
-    is used to keep course-level material retrievable separately.
+    When ``unit_number`` is set (and lecture_id is None), the embeddings are
+    stored with a synthetic ``unit_{course_id}_{unit_number}`` value so they
+    can be retrieved for all lectures in that unit.
     """
     ext = _get_file_extension(file.filename)
     if ext not in ALLOWED_EXTENSIONS:
@@ -294,6 +367,7 @@ async def _process_and_save_material(
         course_id=course_id,
         teacher_id=teacher_id,
         lecture_id=lecture_id,
+        unit_number=unit_number,
         filename=file.filename,
         file_type=ModelMaterialType(ext),
         file_path=file_path,
@@ -307,34 +381,70 @@ async def _process_and_save_material(
         logger.info(f"Processing document: {file.filename}")
         result = process_document(file_path, ext)
 
-        material.content = result["content"]
-        material.chunks = result["chunks"]
+        content = result["content"]
+        chunks = result["chunks"]
+
+        # --- Guard: fail if no text was extracted ---
+        if not content or not content.strip():
+            logger.warning(
+                f"No text extracted from {file.filename} — "
+                f"possibly a scanned/image-based document with no OCR available"
+            )
+            material.content = ""
+            material.chunks = []
+            material.processing_status = ModelProcessingStatus.FAILED
+            material.processing_error = (
+                "No text could be extracted from this document. "
+                "If it is a scanned PDF, ensure Tesseract OCR is installed."
+            )
+            material.processed_at = datetime.utcnow()
+            await material.save()
+
+            return MaterialUploadResponse(
+                id=str(material.id),
+                course_id=course_id,
+                lecture_id=lecture_id,
+                unit_number=unit_number,
+                filename=file.filename,
+                file_type=MaterialType(ext),
+                processing_status=ProcessingStatus.FAILED,
+                message="No text could be extracted from this document",
+            )
+
+        material.content = content
+        material.chunks = chunks
         material.metadata = result["metadata"]
         material.processing_status = ModelProcessingStatus.COMPLETED
         material.processed_at = datetime.utcnow()
 
-        # Determine the lecture_id to use for vector scoping
-        vector_lecture_id = lecture_id if lecture_id else f"course_material_{material.id}"
+        # Determine the vector scope ID
+        if lecture_id:
+            vector_lecture_id = lecture_id
+        elif unit_number:
+            vector_lecture_id = f"unit_{course_id}_{unit_number}"
+        else:
+            vector_lecture_id = f"course_material_{material.id}"
 
-        if result["chunks"]:
+        if chunks:
             chunk_ids = [
-                f"{material.id}_chunk_{i}" for i in range(len(result["chunks"]))
+                f"{material.id}_chunk_{i}" for i in range(len(chunks))
             ]
             metadatas = [
                 {
                     "source": "teacher_material",
                     "material_id": str(material.id),
-                    "lecture_id": lecture_id,  # None for course-level
+                    "lecture_id": lecture_id,
+                    "unit_number": unit_number,
                     "filename": file.filename,
                     "chunk_index": i,
                 }
-                for i in range(len(result["chunks"]))
+                for i in range(len(chunks))
             ]
 
             await add_documents(
                 course_id=course_id,
                 lecture_id=vector_lecture_id,
-                documents=result["chunks"],
+                documents=chunks,
                 metadatas=metadatas,
                 ids=chunk_ids,
             )
@@ -342,7 +452,7 @@ async def _process_and_save_material(
             material.embedding_ids = chunk_ids
             logger.info(
                 f"Indexed {len(chunk_ids)} chunks for material {material.id} "
-                f"(lecture={lecture_id or 'course-level'})"
+                f"(unit={unit_number}, lecture={lecture_id or 'unit-level'})"
             )
 
         await material.save()
@@ -357,6 +467,7 @@ async def _process_and_save_material(
         id=str(material.id),
         course_id=course_id,
         lecture_id=lecture_id,
+        unit_number=unit_number,
         filename=file.filename,
         file_type=MaterialType(ext),
         processing_status=ProcessingStatus(material.processing_status.value),
@@ -393,6 +504,7 @@ def _to_response(
         course_id=m.course_id,
         teacher_id=m.teacher_id,
         lecture_id=m.lecture_id,
+        unit_number=m.unit_number,
         filename=m.filename,
         file_type=MaterialType(m.file_type.value),
         file_size_bytes=m.file_size_bytes,

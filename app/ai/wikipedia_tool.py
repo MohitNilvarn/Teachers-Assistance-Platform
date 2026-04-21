@@ -29,7 +29,10 @@ async def search_wikipedia(query: str, num_results: int = 3) -> List[Dict[str, s
     results: List[Dict[str, str]] = []
     
     try:
-        async with httpx.AsyncClient(timeout=10.0) as client:
+        headers = {
+            "User-Agent": "TAP-EducationPlatform/1.0 (Teacher Assistance Platform; educational use)"
+        }
+        async with httpx.AsyncClient(timeout=10.0, headers=headers) as client:
             # Step 1: Search for matching pages
             search_params = {
                 "action": "query",

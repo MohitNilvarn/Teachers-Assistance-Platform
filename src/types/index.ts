@@ -1,6 +1,8 @@
 /* ──────────────────────────────────────────────
    Shared TypeScript types for TAP frontend
    ────────────────────────────────────────────── */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+// Using any for dynamic API response content which varies based on generation type
 
 // ── Auth ─────────────────────────────────────
 

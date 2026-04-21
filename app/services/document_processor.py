@@ -2,11 +2,13 @@
 """
 Document processing service for extracting text from various file formats.
 Supports PDF, DOCX, PPTX, TXT, and Markdown files.
+
+PDF extraction uses PyMuPDF (fitz) for reliable text extraction, with
+automatic OCR fallback via pytesseract for scanned/image-based PDFs.
 """
 import os
 from typing import List, Dict, Any, Optional
 from abc import ABC, abstractmethod
-from pypdf import PdfReader
 from docx import Document as DocxDocument
 from pptx import Presentation
 import markdown
@@ -32,36 +34,124 @@ class BaseDocumentProcessor(ABC):
 
 
 class PDFProcessor(BaseDocumentProcessor):
-    """Process PDF files using pypdf."""
+    """
+    Process PDF files using PyMuPDF (fitz).
+    
+    Two-stage extraction:
+    1. Native text extraction via PyMuPDF (handles most PDFs)
+    2. OCR fallback via pytesseract for scanned/image-based PDFs
+    """
     
     def extract_text(self, file_path: str) -> str:
-        """Extract text from all pages of a PDF."""
+        """Extract text from all pages of a PDF, with OCR fallback."""
+        import fitz  # PyMuPDF
+        
         try:
-            reader = PdfReader(file_path)
+            doc = fitz.open(file_path)
             text_parts = []
             
-            for page in reader.pages:
-                page_text = page.extract_text()
-                if page_text:
-                    text_parts.append(page_text)
+            for page in doc:
+                page_text = page.get_text("text")
+                if page_text and page_text.strip():
+                    text_parts.append(page_text.strip())
             
-            return "\n\n".join(text_parts)
+            doc.close()
+            
+            combined = "\n\n".join(text_parts)
+            
+            # If native extraction got meaningful text, return it
+            if combined.strip() and len(combined.strip()) > 50:
+                logger.info(
+                    f"PDF text extracted via PyMuPDF: {len(combined)} chars "
+                    f"from {file_path}"
+                )
+                return combined
+            
+            # Otherwise, try OCR fallback
+            logger.info(
+                f"PyMuPDF extracted little/no text ({len(combined)} chars), "
+                f"attempting OCR fallback for: {file_path}"
+            )
+            return self._ocr_extract(file_path)
+            
         except Exception as e:
             logger.error(f"Error extracting PDF text: {str(e)}")
             raise
     
-    def extract_metadata(self, file_path: str) -> Dict[str, Any]:
-        """Extract PDF metadata."""
+    def _ocr_extract(self, file_path: str) -> str:
+        """
+        OCR fallback: render PDF pages to images and run pytesseract.
+        
+        Requires:
+        - pytesseract (pip install pytesseract)
+        - Tesseract OCR binary installed on the system
+        """
         try:
-            reader = PdfReader(file_path)
-            metadata = reader.metadata or {}
+            import fitz  # PyMuPDF
+            import pytesseract
+            from PIL import Image
+            import io
+            
+            doc = fitz.open(file_path)
+            text_parts = []
+            
+            for page_num, page in enumerate(doc):
+                # Render page to a high-res image (300 DPI)
+                mat = fitz.Matrix(300 / 72, 300 / 72)  # 300 DPI
+                pix = page.get_pixmap(matrix=mat)
+                
+                # Convert to PIL Image
+                img_data = pix.tobytes("png")
+                img = Image.open(io.BytesIO(img_data))
+                
+                # Run OCR
+                page_text = pytesseract.image_to_string(img, lang="eng")
+                if page_text and page_text.strip():
+                    text_parts.append(page_text.strip())
+                    logger.debug(
+                        f"OCR page {page_num + 1}: extracted {len(page_text)} chars"
+                    )
+            
+            doc.close()
+            
+            combined = "\n\n".join(text_parts)
+            if combined.strip():
+                logger.info(
+                    f"OCR extracted {len(combined)} chars from {len(text_parts)} pages"
+                )
+            else:
+                logger.warning(
+                    f"OCR also returned empty text for: {file_path}"
+                )
+            
+            return combined
+            
+        except ImportError as e:
+            logger.warning(
+                f"OCR dependencies not available ({e}). "
+                f"Install pytesseract and Tesseract OCR for scanned PDF support."
+            )
+            return ""
+        except Exception as e:
+            logger.error(f"OCR extraction failed: {str(e)}")
+            return ""
+    
+    def extract_metadata(self, file_path: str) -> Dict[str, Any]:
+        """Extract PDF metadata using PyMuPDF."""
+        try:
+            import fitz
+            
+            doc = fitz.open(file_path)
+            metadata = doc.metadata or {}
+            page_count = len(doc)
+            doc.close()
             
             return {
-                "page_count": len(reader.pages),
-                "title": getattr(metadata, "title", None),
-                "author": getattr(metadata, "author", None),
-                "subject": getattr(metadata, "subject", None),
-                "creator": getattr(metadata, "creator", None),
+                "page_count": page_count,
+                "title": metadata.get("title"),
+                "author": metadata.get("author"),
+                "subject": metadata.get("subject"),
+                "creator": metadata.get("creator"),
             }
         except Exception as e:
             logger.error(f"Error extracting PDF metadata: {str(e)}")

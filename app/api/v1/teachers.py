@@ -94,7 +94,7 @@ async def teacher_dashboard(
     If the teacher signed up with a subject_code but hasn't created
     a course yet, auto-creates one from the subject catalog.
     """
-    courses = await Course.find(Course.teacher_id == current_user["id"]).to_list()
+    courses = await Course.find({"teacher_id": current_user["id"]}).to_list()
 
     # Auto-create course if teacher has subject_code in profile but no course yet
     if not courses:

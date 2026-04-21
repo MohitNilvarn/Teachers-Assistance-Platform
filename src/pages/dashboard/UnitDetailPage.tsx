@@ -56,8 +56,9 @@ export default function UnitDetailPage() {
             setLoading(true)
             const result = await api.getUnitDetail(courseId, Number(unitNumber))
             setUnit(result)
-        } catch (err: any) {
-            setError(err.message || "Failed to load unit")
+        } catch (err: Error | unknown) {
+            const message = err instanceof Error ? err.message : "Failed to load unit"
+            setError(message)
         } finally {
             setLoading(false)
         }
@@ -65,6 +66,7 @@ export default function UnitDetailPage() {
 
     useEffect(() => {
         fetchUnit()
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [courseId, unitNumber])
 
     const handleCreate = async () => {
@@ -84,8 +86,9 @@ export default function UnitDetailPage() {
             setAudioFile(null)
             setShowForm(false)
             await fetchUnit()
-        } catch (err: any) {
-            setError(err.message || "Failed to create lecture")
+        } catch (err: Error | unknown) {
+            const message = err instanceof Error ? err.message : "Failed to create lecture"
+            setError(message)
         } finally {
             setCreating(false)
         }
@@ -96,20 +99,22 @@ export default function UnitDetailPage() {
         try {
             await api.transcribeLecture(lectureId)
             await fetchUnit()
-        } catch (err: any) {
-            setError(err.message || "Transcription failed")
+        } catch (err: Error | unknown) {
+            const message = err instanceof Error ? err.message : "Transcription failed"
+            setError(message)
         } finally {
             setActionLoading(prev => { const n = { ...prev }; delete n[lectureId]; return n })
         }
     }
 
-    const handleGenerate = async (lectureId: string) => {
+    const handleGenerate = async (lectureId: string, alreadyGenerated = false) => {
         setActionLoading(prev => ({ ...prev, [lectureId]: "generating" }))
         try {
-            await api.generateContent(lectureId)
+            await api.generateContent(lectureId, ["notes", "assignment", "flashcards"], alreadyGenerated)
             await fetchUnit()
-        } catch (err: any) {
-            setError(err.message || "Content generation failed")
+        } catch (err: Error | unknown) {
+            const message = err instanceof Error ? err.message : "Content generation failed"
+            setError(message)
         } finally {
             setActionLoading(prev => { const n = { ...prev }; delete n[lectureId]; return n })
         }
@@ -198,8 +203,9 @@ export default function UnitDetailPage() {
                 setIsRecording(false)
                 if (liveStatus === "recording") setLiveStatus("idle")
             }
-        } catch (err: any) {
-            setError(err.message || "Failed to access microphone")
+        } catch (err: Error | unknown) {
+            const message = err instanceof Error ? err.message : "Failed to access microphone"
+            setError(message)
             setLiveStatus("idle")
         }
     }
@@ -334,7 +340,7 @@ export default function UnitDetailPage() {
                 </div>
             )}
 
-            {/* Add Lecture — Teachers only */}
+            {/* Add Lecture ï¿½ Teachers only */}
             {role === "teacher" && (
             <div>
                 {!showForm ? (
@@ -404,11 +410,11 @@ export default function UnitDetailPage() {
                             <div className="flex gap-3 pt-2">
                                 <Button
                                     onClick={handleCreate}
-                                    disabled={!newTitle.trim() || !audioFile || creating}
+                                    disabled={!audioFile || creating}
                                     className="bg-[#7C5CFC] text-white hover:bg-[#6B4FDB] rounded-xl font-semibold shadow-sm shadow-[#7C5CFC]/20"
                                 >
                                     {creating ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Plus className="h-4 w-4 mr-2" />}
-                                    {creating ? "Creating…" : "Create Lecture"}
+                                    {creating ? "Creatingï¿½" : "Create Lecture"}
                                 </Button>
                                 <Button variant="ghost" className="rounded-xl" onClick={() => { setShowForm(false); setNewTitle(""); setNewDesc(""); setAudioFile(null) }}>
                                     Cancel
@@ -521,7 +527,7 @@ export default function UnitDetailPage() {
                             index={idx}
                             actionLoading={actionLoading[lec.id]}
                             onTranscribe={() => handleTranscribe(lec.id)}
-                            onGenerate={() => handleGenerate(lec.id)}
+                            onGenerate={() => handleGenerate(lec.id, lec.generation_status === "completed")}
                             isTeacher={role === "teacher"}
                             courseId={courseId}
                             unitNumber={unitNumber}
@@ -589,7 +595,7 @@ function LectureCard({ lecture, index, actionLoading, onTranscribe, onGenerate, 
                             </div>
                         </div>
 
-                        {/* Content Badges — clickable links to view content */}
+                        {/* Content Badges ï¿½ clickable links to view content */}
                         {canViewContent && courseId && unitNumber && (
                             <div className="flex items-center gap-2 flex-shrink-0">
                                 {lecture.has_notes && (
@@ -640,7 +646,7 @@ function LectureCard({ lecture, index, actionLoading, onTranscribe, onGenerate, 
                             </div>
                         )}
 
-                        {/* Actions — Teachers only */}
+                        {/* Actions ï¿½ Teachers only */}
                         {isTeacher && (
                         <div className="flex items-center gap-2 flex-shrink-0">
                             {canTranscribe && (

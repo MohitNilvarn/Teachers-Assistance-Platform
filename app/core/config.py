@@ -47,6 +47,12 @@ class Settings:
     # Deepgram API (Real-time Transcription)
     DEEPGRAM_API_KEY: str = os.getenv("DEEPGRAM_API_KEY", "")
     
+    # AI Content Generation Strategy
+    # Always summarize entire transcript using LLM before content generation
+    TRANSCRIPT_SUMMARIZATION_ENABLED: bool = os.getenv("TRANSCRIPT_SUMMARIZATION_ENABLED", "true").lower() == "true"
+    SUMMARIZATION_TEMPERATURE: float = float(os.getenv("SUMMARIZATION_TEMPERATURE", "0.3"))
+    SUMMARIZATION_MAX_TOKENS: int = int(os.getenv("SUMMARIZATION_MAX_TOKENS", "8000"))
+    
     def __init__(self):
         self._validate_config()
     

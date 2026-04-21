@@ -101,7 +101,7 @@ async def list_courses(
 ):
     """List courses. Teachers see their own; students see enrolled courses."""
     if current_user["role"] == "teacher":
-        courses = await Course.find(Course.teacher_id == current_user["id"]).to_list()
+        courses = await Course.find({"teacher_id": current_user["id"]}).to_list()
     else:
         courses = await Course.find({"enrolled_students": current_user["id"]}).to_list()
 
@@ -120,7 +120,7 @@ async def list_courses_by_year(
     Return every course whose `year` field matches.
     Students use this to discover and auto-enroll in courses for their year.
     """
-    courses = await Course.find(Course.year == year.upper()).to_list()
+    courses = await Course.find({"year": year.upper()}).to_list()
     return CourseListResponse(
         courses=[_course_to_response(c) for c in courses],
         total=len(courses),
@@ -217,13 +217,49 @@ async def auto_enroll_by_year(
 ):
     """
     Automatically enroll the current student in every course matching
-    their academic year. Called once on first dashboard load.
+    their academic year. Also auto-creates courses for any catalog
+    subjects that don't have a course record yet.
     """
+    from app.data.subjects import get_subjects_for_year
+    from app.models.course import Unit
+
     year = current_user.get("year", "")
     if not year:
         raise HTTPException(status_code=400, detail="Student year not set in profile")
 
-    courses = await Course.find(Course.year == year.upper()).to_list()
+    year_upper = year.upper()
+
+    # Ensure every catalog subject has a course record
+    catalog_subjects = get_subjects_for_year(year_upper)
+    existing_courses = await Course.find({"year": year_upper}).to_list()
+    existing_codes = set()
+    for c in existing_courses:
+        if c.subject_code:
+            existing_codes.add(c.subject_code)
+        if c.code:
+            existing_codes.add(c.code)
+
+    created_count = 0
+    for subj in catalog_subjects:
+        if subj["code"] not in existing_codes:
+            course = Course(
+                teacher_id="system",
+                name=subj["name"],
+                code=subj["code"],
+                subject_code=subj["code"],
+                semester=str(subj["semester"]),
+                year=year_upper,
+                units=[
+                    Unit(number=u["number"], title=u["title"])
+                    for u in subj["units"]
+                ],
+            )
+            await course.insert()
+            created_count += 1
+            logger.info(f"Auto-created course for catalog subject {subj['code']} ({subj['name']})")
+
+    # Re-fetch all courses for the year (including newly created ones)
+    courses = await Course.find({"year": year_upper}).to_list()
     enrolled_count = 0
 
     for course in courses:
@@ -232,7 +268,7 @@ async def auto_enroll_by_year(
             await course.save()
             enrolled_count += 1
 
-    logger.info(f"Student {current_user['id']} auto-enrolled in {enrolled_count} courses for year {year}")
+    logger.info(f"Student {current_user['id']} auto-enrolled in {enrolled_count} courses for year {year} ({created_count} new courses created)")
 
     return {
         "message": f"Enrolled in {enrolled_count} new courses for {year}",

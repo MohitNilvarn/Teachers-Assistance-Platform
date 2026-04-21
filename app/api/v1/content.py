@@ -375,7 +375,7 @@ async def _get_recent_content(
 
     # Get courses the user has access to
     if role == "teacher":
-        courses = await Course.find(Course.teacher_id == user_id).to_list()
+        courses = await Course.find({"teacher_id": user_id}).to_list()
     else:
         courses = await Course.find(
             {"enrolled_students": user_id}
