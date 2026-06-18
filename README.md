@@ -1,73 +1,51 @@
-# React + TypeScript + Vite
+# Teacher Assistance Platform (TAP)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+AI-powered platform that turns lectures and teacher materials into grounded study content (notes, assignments, flashcards) using a production-grade RAG pipeline.
 
-Currently, two official plugins are available:
+## Repository Layout
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+apps/
+  api/        # FastAPI backend (Python)
+  web/        # Vite + React frontend
+docs/         # Architecture and operational docs
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Backend (FastAPI)
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd "apps/api"
+python -m venv .venv
+.venv\Scripts\activate  # Windows
+pip install -r requirements.txt
+uvicorn app.main:app --reload --port 8000
 ```
+
+- API docs: http://localhost:8000/docs
+- Uploads default to `apps/api/uploads` (configurable via `UPLOAD_DIR`).
+- `.env` lives at the repo root.
+
+## Frontend (Vite + React)
+
+```bash
+cd "apps/web"
+npm install
+npm run dev
+```
+
+- App: http://localhost:5173
+- Set `VITE_API_URL` in `apps/web/.env.local` if needed.
+
+## Tests
+
+```bash
+cd "apps/api"
+pytest
+```
+
+## Docs
+
+- Architecture: docs/ARCHITECTURE.md
+- Workflow: docs/PROJECT_WORKFLOW.md
+- Upload pipeline: docs/DOCUMENT_UPLOAD_GUIDE.md
+- Upload troubleshooting: docs/UPLOAD_TROUBLESHOOTING.md

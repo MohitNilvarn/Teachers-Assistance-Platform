@@ -1,0 +1,24 @@
+{
+  "main": [
+    {
+      "icon": "facebook",
+      "label": "Facebook",
+      "href": "#!"
+    },
+    {
+      "icon": "slack",
+      "label": "Slack",
+      "href": "#!"
+    },
+    {
+      "icon": "github",
+      "label": "GitHub",
+      "href": "#!"
+    },
+    {
+      "icon": "linkedin",
+      "label": "LinkedIn",
+      "href": "#!"
+    }
+  ]
+}

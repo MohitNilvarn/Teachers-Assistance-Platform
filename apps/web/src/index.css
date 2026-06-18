@@ -1,0 +1,371 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    /* ── Dashboard / Auth (light mode) ── */
+    --background: 0 0% 100%;
+    --foreground: 0 0% 9%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+
+    --primary: 0 0% 9%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 40%;
+
+    --accent: 0 0% 96%;
+    --accent-foreground: 0 0% 9%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 0 0% 89%;
+    --input: 0 0% 89%;
+    --ring: 0 0% 9%;
+
+    --radius: 0.75rem;
+
+    --sidebar-width: 260px;
+    --header-height: 56px;
+
+    /* ── Landing Page Premium Palette ── */
+    --landing-bg: #0a0a0b;
+    --landing-bg-elevated: #111113;
+    --landing-bg-card: #141416;
+    --landing-border: #1e1e21;
+    --landing-border-subtle: rgba(255, 255, 255, 0.06);
+
+    --landing-text-primary: #f0ede8;
+    --landing-text-secondary: #7a7770;
+    --landing-text-muted: #5a5650;
+    --landing-text-faint: #3a3935;
+
+    --landing-accent-start: #1a1a2e;
+    --landing-accent-mid: #c2185b;
+    --landing-accent-end: #e8a849;
+    --landing-gradient: #1a1a2e;
+    --landing-gradient-subtle: rgba(26,26,46,0.08);
+  }
+
+  /* ── Optimus Landing Page Theme (light, warm) ── */
+  .optimus-landing {
+    --background: 40 20% 97%;
+    --foreground: 30 15% 10%;
+    --card: 0 0% 100%;
+    --card-foreground: 30 15% 10%;
+    --primary: 30 15% 10%;
+    --primary-foreground: 40 20% 97%;
+    --secondary: 40 10% 95%;
+    --secondary-foreground: 30 15% 10%;
+    --muted: 40 10% 93%;
+    --muted-foreground: 30 8% 40%;
+    --accent: 40 10% 91%;
+    --accent-foreground: 30 15% 10%;
+    --border: 40 10% 87%;
+    --input: 40 10% 91%;
+    --ring: 30 15% 10%;
+    scroll-behavior: smooth;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1, "cv02", "cv03", "cv04", "cv11";
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #3a3935;
+    border-radius: 100px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #5a5650;
+  }
+}
+
+@layer utilities {
+  /* ── Existing dashboard utilities (keep) ── */
+  .glass {
+    @apply bg-white/80 backdrop-blur-xl border border-[#e5e5ea];
+  }
+  .glass-card {
+    @apply bg-white/90 backdrop-blur-lg border border-[#e5e5ea] shadow-sm;
+  }
+  .gradient-text {
+    color: #1a1a2e;
+    font-weight: 700;
+  }
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+    background-size: 200% 100%;
+  }
+  .stat-card {
+    @apply bg-white rounded-2xl border border-[#e5e5ea] shadow-sm hover:shadow-md transition-all duration-300;
+  }
+
+  /* ── Landing Page Utilities ── */
+  .landing-section {
+    @apply relative;
+    padding: 6rem 0;
+  }
+
+  @media (min-width: 768px) {
+    .landing-section {
+      padding: 8rem 0;
+    }
+  }
+
+  .landing-container {
+    @apply mx-auto px-6;
+    max-width: 1200px;
+  }
+
+  .landing-gradient-text {
+    color: var(--landing-accent-start);
+    font-weight: 700;
+  }
+
+  .landing-gradient-border {
+    position: relative;
+  }
+
+  .landing-gradient-border::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    padding: 1px;
+    background: var(--landing-gradient);
+    border-radius: inherit;
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask-composite: exclude;
+    -webkit-mask-composite: xor;
+    pointer-events: none;
+  }
+
+  .landing-glow {
+    position: relative;
+  }
+
+  .landing-glow::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 120%;
+    height: 120%;
+    background: radial-gradient(ellipse at center, rgba(215, 109, 119, 0.06) 0%, transparent 70%);
+    pointer-events: none;
+    z-index: -1;
+  }
+
+  /* ── Optimus Landing Page Utilities ── */
+  .font-display {
+    font-family: 'Instrument Serif', Georgia, serif;
+  }
+
+  .text-stroke {
+    -webkit-text-stroke: 1.5px currentColor;
+    -webkit-text-fill-color: transparent;
+  }
+
+  .marquee {
+    animation: marquee 30s linear infinite;
+  }
+
+  .marquee-reverse {
+    animation: marquee-reverse 25s linear infinite;
+  }
+
+  .line-reveal {
+    clip-path: inset(0 100% 0 0);
+    animation: line-reveal 0.8s cubic-bezier(0.77, 0, 0.175, 1) forwards;
+  }
+
+  .hover-lift {
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px);
+  }
+
+  .letter-spin {
+    display: inline-block;
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .letter-spin:hover {
+    transform: rotateY(360deg);
+  }
+
+  .animate-char-in {
+    animation: char-in 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0;
+    filter: blur(40px);
+    transform: translateY(100%);
+  }
+
+  .noise-overlay {
+    position: relative;
+  }
+
+  .noise-overlay::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+    opacity: 0.03;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .border-sketch {
+    border: 1px solid transparent;
+    background:
+      linear-gradient(var(--background), var(--background)) padding-box,
+      linear-gradient(135deg, var(--foreground) 25%, transparent 25%, transparent 50%, var(--foreground) 50%, var(--foreground) 75%, transparent 75%) border-box;
+    background-size: 100% 100%, 8px 8px;
+  }
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-reverse {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes line-reveal {
+  to { clip-path: inset(0 0 0 0); }
+}
+
+@keyframes char-in {
+  0% {
+    opacity: 0;
+    filter: blur(40px);
+    transform: translateY(100%);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: translateY(0);
+  }
+}
+
+/* Dashboard Animations */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-20px); }
+  100% { transform: translateY(0px); }
+}
+
+@keyframes lineGrow {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+@keyframes gradientProgress {
+  0% { background-position: 200% center; }
+  100% { background-position: -200% center; }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes slideInUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInScale {
+  from { opacity: 0; transform: scale(0.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* ── Premium Dashboard Utilities ── */
+.premium-gradient-bar {
+  background: #1a1a2e;
+}
+
+.stat-card-premium {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.stat-card-premium:hover {
+  transform: translateY(-3px);
+}
+
+.stat-card-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: inherit;
+  filter: blur(20px);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: -1;
+}
+
+.stat-card-premium:hover::before {
+  opacity: 0.15;
+}
+
+.unit-card-premium {
+  transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.unit-card-premium:hover {
+  transform: translateY(-4px);
+}
+
+.diagram-image-card {
+  animation: fadeInScale 0.3s ease forwards;
+}
+
+.animate-slide-up {
+  animation: slideInUp 0.4s ease forwards;
+}

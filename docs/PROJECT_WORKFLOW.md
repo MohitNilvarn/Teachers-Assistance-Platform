@@ -277,7 +277,7 @@ Backend:
   1. Validates course ownership (teacher must own this course)
   2. Validates unit_number is valid (1–6)
   3. Validates audio file extension
-  4. Saves audio file to disk: ./uploads/{uuid}.{ext}
+        4. Saves audio file to disk: apps/api/uploads/{uuid}.{ext}
   5. Calculates audio duration using pydub
   6. Creates Lecture document in MongoDB
      - transcription_status = "pending"
@@ -349,7 +349,7 @@ Frontend sends: POST /api/v1/lectures/{lecture_id}/materials
         ▼
 Backend:
   1. Validates file type and ownership
-  2. Saves file to disk: ./uploads/{uuid}.{ext}
+        2. Saves file to disk: apps/api/uploads/{uuid}.{ext}
   3. Extracts text using the appropriate processor:
      - PDF → pypdf (reads all pages)
      - DOCX → python-docx (paragraphs + tables)
@@ -985,57 +985,31 @@ This handles transient API errors and rate limits gracefully.
 ## 15. File & Folder Structure
 
 ```
-app/
-├── main.py                     # FastAPI app + lifespan (startup/shutdown)
-├── core/
-│   ├── config.py               # Environment variables → Settings class
-│   ├── dependencies.py         # Auth middleware (JWT decode, role guards)
-│   └── logger.py               # Logging setup
-├── db/
-│   ├── mongodb.py              # Motor + Beanie initialization
-│   ├── supabase.py             # Supabase client creation
-│   └── redis.py                # Optional Redis connection
-├── models/                     # Beanie ODM documents (MongoDB collections)
-│   ├── course.py               # Course + Unit
-│   ├── lecture.py              # Lecture (audio, transcript, status)
-│   ├── material.py             # Uploaded materials
-│   └── content.py              # Generated content (notes/assignment/flashcards)
-├── schemas/                    # Pydantic request/response models
-│   ├── auth.py, course.py, lecture.py, material.py, content.py
-├── services/                   # Business logic services
-│   ├── audio_processor.py      # faster-whisper transcription
-│   ├── document_processor.py   # PDF/DOCX/PPTX text extraction
-│   ├── embedding_service.py    # Local sentence-transformer embeddings
-│   ├── vector_store.py         # MongoDB Atlas Vector Search
-│   └── realtime_transcription.py # Deepgram WebSocket streaming
-├── ai/                         # AI pipeline
-│   ├── graph.py                # LangGraph 6-node workflow
-│   ├── llm.py                  # Groq LLM wrapper + JSON/LaTeX handling
-│   ├── prompts.py              # System + notes + assignment + flashcard prompts
-│   └── wikipedia_tool.py       # Wikipedia fact-check tool
-├── api/v1/                     # Route handlers
-│   ├── auth.py, courses.py, lectures.py, materials.py
-│   ├── content.py, teachers.py, users.py, subjects.py, realtime.py
-└── data/
-    └── subjects.py             # Hardcoded subject catalog (FE/SE/TE/BE)
+apps/
+        api/
+                app/
+                        main.py                   # FastAPI app + lifespan (startup/shutdown)
+                        core/                      # Config, dependencies, logging
+                        db/                        # MongoDB/Supabase/Redis clients
+                        models/                    # Beanie ODM documents
+                        schemas/                   # Pydantic request/response models
+                        services/                  # Audio, docs, embeddings, vector store
+                        ai/                        # LangGraph workflow + LLM tools
+                        api/v1/                    # Route handlers
+                        data/                      # Subject catalog
+                tests/
+                scripts/
+                uploads/
 
-src/                            # React frontend
-├── App.tsx                     # Routes + layout
-├── main.tsx                    # React entry point
-├── lib/
-│   ├── api.ts                  # API client with auto JWT refresh
-│   └── utils.ts                # Utility functions
-├── pages/
-│   ├── LandingPage.tsx
-│   ├── auth/                   # LoginPage, SignupPage
-│   └── dashboard/              # All dashboard pages
-├── components/
-│   ├── auth/                   # ProtectedRoute
-│   ├── dashboard/              # DashboardLayout, Chatbot, StudentSubjects
-│   ├── landing/                # Hero, Features, HowItWorks, CTA, Testimonials
-│   └── ui/                     # Button, Card, Input, Navbar, Sidebar, LatexRenderer
-└── types/
-    └── index.ts                # TypeScript type definitions
+        web/
+                src/                         # React frontend
+                        App.tsx                    # Routes + layout
+                        main.tsx                   # React entry point
+                        lib/                       # API client + utilities
+                        pages/                     # Landing, auth, dashboard
+                        components/                # UI + feature components
+                        types/                     # TypeScript type definitions
+                public/
 ```
 
 ---

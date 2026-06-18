@@ -4,6 +4,15 @@
 
 The Teacher Assistance Platform (TAP) is an AI-powered system that processes lecture audio and study materials to automatically generate educational content including notes, assignments, and flashcards.
 
+## Repository Layout
+
+```
+apps/
+  api/        # FastAPI backend (Python)
+  web/        # Vite + React frontend
+docs/         # Architecture and operational docs
+```
+
 ## System Architecture
 
 ```
@@ -263,7 +272,7 @@ EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
 
 # Storage
 CHROMA_PERSIST_DIR=./chroma_db
-UPLOAD_DIR=./uploads
+UPLOAD_DIR=apps/api/uploads
 MAX_UPLOAD_SIZE_MB=50
 ```
 
@@ -273,16 +282,18 @@ MAX_UPLOAD_SIZE_MB=50
 
 1. **Clone and Install**
    ```bash
-   cd "backend TAP"
+  cd "backend TAP\apps\api"
    python -m venv .venv
    .venv\Scripts\activate  # Windows
-   pip install -r requirements.txt
+  pip install -r requirements.txt
    ```
 
 2. **Configure Environment**
    ```bash
-   # Copy .env.example to .env and fill in values
-   cp .env.example .env
+  # Copy .env.example to .env at the repo root and fill in values
+  cd ..\..
+  cp .env.example .env
+  cd apps\api
    ```
 
 3. **Install FFmpeg** (Required for audio processing)
@@ -291,7 +302,7 @@ MAX_UPLOAD_SIZE_MB=50
 
 4. **Run Server**
    ```bash
-   uvicorn app.main:app --reload --port 8000
+  uvicorn app.main:app --reload --port 8000
    ```
 
 5. **Access API Docs**
