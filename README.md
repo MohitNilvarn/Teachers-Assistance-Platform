@@ -1,5 +1,7 @@
 # Teacher Assistance Platform (TAP)
 
+[![Typing SVG](https://readme-typing-svg.herokuapp.com?font=Inter&weight=600&size=24&pause=1000&color=D76D77&width=435&lines=Teacher+Assistance+Platform;Automated+Study+Material;Powered+by+AI)](https://git.io/typing-svg)
+
 [![React](https://img.shields.io/badge/React-18-blue.svg)](https://reactjs.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-009688.svg)](https://fastapi.tiangolo.com/)
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB.svg)](https://www.python.org/)
