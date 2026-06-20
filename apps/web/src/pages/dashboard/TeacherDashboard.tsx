@@ -377,23 +377,25 @@ export default function TeacherDashboard() {
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     {[
-                        { icon: FileText, title: "Generate Notes", desc: "AI-powered lecture summaries" },
-                        { icon: BookOpen, title: "Create Assignments", desc: "Auto-generate question sets" },
-                        { icon: Layers, title: "Build Flashcards", desc: "Smart review decks" },
+                        { icon: FileText, title: "Generate Notes", desc: "AI-powered lecture summaries", to: "/dashboard/notes" },
+                        { icon: BookOpen, title: "Create Assignments", desc: "Auto-generate question sets", to: "/dashboard/assignments" },
+                        { icon: Layers, title: "Build Flashcards", desc: "Smart review decks", to: "/dashboard/flashcards" },
                     ].map((action) => (
-                        <motion.div key={action.title} whileHover={{ y: -2 }} className="cursor-pointer group">
-                            <div className="bg-white rounded-2xl border border-[#eaeaec] hover:shadow-md transition-all duration-300 overflow-hidden">
-                                <div className="p-5 flex items-center gap-4">
-                                    <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#f0f0f5]">
-                                        <action.icon className="h-5 w-5 text-[#6b6b6b] group-hover:text-[#c2185b] transition-colors" />
+                        <motion.div key={action.title} whileHover={{ y: -2 }} className="group">
+                            <Link to={action.to} className="block">
+                                <div className="bg-white rounded-2xl border border-[#eaeaec] hover:shadow-md transition-all duration-300 overflow-hidden">
+                                    <div className="p-5 flex items-center gap-4">
+                                        <div className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#f0f0f5]">
+                                            <action.icon className="h-5 w-5 text-[#6b6b6b] group-hover:text-[#c2185b] transition-colors" />
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <span className="font-semibold text-[#1a1a1a] text-[14px] block">{action.title}</span>
+                                            <span className="text-[12px] text-[#999] block">{action.desc}</span>
+                                        </div>
+                                        <ArrowUpRight className="h-4 w-4 text-[#ccc] group-hover:text-[#c2185b] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all flex-shrink-0" />
                                     </div>
-                                    <div className="flex-1 min-w-0">
-                                        <span className="font-semibold text-[#1a1a1a] text-[14px] block">{action.title}</span>
-                                        <span className="text-[12px] text-[#999] block">{action.desc}</span>
-                                    </div>
-                                    <ArrowUpRight className="h-4 w-4 text-[#ccc] group-hover:text-[#c2185b] group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-all flex-shrink-0" />
                                 </div>
-                            </div>
+                            </Link>
                         </motion.div>
                     ))}
                 </div>

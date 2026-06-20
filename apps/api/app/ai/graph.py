@@ -260,6 +260,18 @@ async def retrieve_context_node(state: ContentGenerationState) -> ContentGenerat
             f"~{built_context.total_tokens_estimate} tokens | "
             f"subject_nature={nature}"
         )
+        
+        # Transparent logging of the fetched RAG content
+        logger.info(
+            f"\n{'='*50}\n"
+            f"TRANSPARENT RAG CONTENT LOG\n"
+            f"{'='*50}\n"
+            f"[TEACHER MATERIALS FETCHED]:\n"
+            f"{teacher_material_ctx if teacher_material_ctx else '(None fetched)'}\n\n"
+            f"[UNIT KNOWLEDGE BASE FETCHED]:\n"
+            f"{unit_kb_ctx if unit_kb_ctx else '(None fetched)'}\n"
+            f"{'='*50}\n"
+        )
 
         return {
             **state,
@@ -398,10 +410,29 @@ async def external_knowledge_node(state: ContentGenerationState) -> ContentGener
             key_topics=key_topics,
         )
 
+        # Truncate external knowledge to avoid exceeding model context limits
+        # groq/compound uses models with tight TPM limits; 4000 chars ≈ 1000 tokens
+        MAX_EXT_KNOWLEDGE_CHARS = 2000
+        if external_context and len(external_context) > MAX_EXT_KNOWLEDGE_CHARS:
+            logger.info(
+                f"Truncating external knowledge from {len(external_context)} "
+                f"to {MAX_EXT_KNOWLEDGE_CHARS} chars to respect model limits"
+            )
+            external_context = external_context[:MAX_EXT_KNOWLEDGE_CHARS]
+
         if external_context:
             logger.info(
                 f"External knowledge retrieved: {len(external_context)} chars, "
                 f"{len(verified_facts)} verified facts"
+            )
+            
+            # Transparent logging of the fetched external knowledge
+            logger.info(
+                f"\n{'='*50}\n"
+                f"TRANSPARENT EXTERNAL KNOWLEDGE LOG (Wikipedia / GFG)\n"
+                f"{'='*50}\n"
+                f"{external_context}\n"
+                f"{'='*50}\n"
             )
         else:
             logger.info(
@@ -462,7 +493,7 @@ async def summarize_transcript_node(state: ContentGenerationState) -> ContentGen
         summary = await generate_text(
             prompt=prompt,
             system_prompt="You are an expert at creating clean, comprehensive lecture summaries that preserve all key concepts while removing transcription noise.",
-            max_tokens=8000,
+            max_tokens=2000,
             temperature=0.3,  # Lower temp for faithful summarization
         )
         
@@ -508,6 +539,10 @@ async def generate_notes_node(state: ContentGenerationState) -> ContentGeneratio
         return state
     
     logger.info(f"Generating notes for lecture: {state['lecture_id']}")
+    
+    import asyncio
+    logger.info("Waiting 65s before notes generation to respect rate limits...")
+    await asyncio.sleep(65)
     
     try:
         # Select transcript based on strategy
@@ -638,6 +673,10 @@ async def generate_assignment_node(state: ContentGenerationState) -> ContentGene
     
     logger.info(f"Generating assignment for lecture: {state['lecture_id']}")
     
+    import asyncio
+    logger.info("Waiting 65s before assignment generation to respect rate limits...")
+    await asyncio.sleep(65)
+    
     try:
         # Select transcript based on strategy
         transcript_to_use = state.get("transcript_summary") or state["transcript"]
@@ -687,6 +726,10 @@ async def generate_flashcards_node(state: ContentGenerationState) -> ContentGene
         return state
     
     logger.info(f"Generating flashcards for lecture: {state['lecture_id']}")
+    
+    import asyncio
+    logger.info("Waiting 65s before flashcards generation to respect rate limits...")
+    await asyncio.sleep(65)
     
     try:
         # Select transcript based on strategy

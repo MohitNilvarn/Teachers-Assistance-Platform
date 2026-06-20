@@ -113,6 +113,7 @@ export interface RecentContentItem {
   id: string
   lecture_id: string
   course_id: string
+  unit_number: number
   content_type: ContentType
   title: string
   lecture_title: string
@@ -124,6 +125,26 @@ export interface RecentContentItem {
 
 export interface RecentContentListResponse {
   items: RecentContentItem[]
+  total: number
+}
+
+export interface RecentLectureItem {
+  id: string
+  lecture_id: string
+  course_id: string
+  course_name: string
+  unit_number: number
+  title: string
+  description?: string
+  transcription_status: TranscriptionStatus | string
+  generation_status: GenerationStatus | string
+  created_at: string
+  transcribed_at?: string
+  generated_at?: string
+}
+
+export interface RecentLectureListResponse {
+  items: RecentLectureItem[]
   total: number
 }
 

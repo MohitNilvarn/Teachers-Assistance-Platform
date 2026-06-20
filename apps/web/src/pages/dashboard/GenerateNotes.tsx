@@ -65,7 +65,7 @@ export default function GenerateNotes() {
                         {recentNotes.map((item) => (
                             <motion.div key={item.id} variants={FADE_UP} whileHover={{ y: -3 }}>
                                 <div
-                                    onClick={() => navigate(`/dashboard/lectures/${item.lecture_id}`)}
+                                    onClick={() => navigate(`/dashboard/course/${item.course_id}/unit/${item.unit_number}/lecture/${item.lecture_id}`)}
                                     className="bg-white rounded-2xl border border-[#eaeaec] hover:shadow-md transition-all duration-300 overflow-hidden cursor-pointer group"
                                 >
                                     <div className="h-1" style={{ background: "#1a1a2e" }} />

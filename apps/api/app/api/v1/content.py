@@ -18,6 +18,8 @@ from app.schemas.content import (
     SemanticSearchResponse,
     RecentContentItem,
     RecentContentListResponse,
+    RecentLectureItem,
+    RecentLectureListResponse,
 )
 from app.models.course import Course
 from app.models.lecture import Lecture
@@ -65,6 +67,16 @@ async def get_recent_flashcards(
     Get the 6 most recently generated flashcards across all accessible courses.
     """
     return await _get_recent_content(ModelContentType.FLASHCARDS, current_user)
+
+
+@router.get("/recent/lectures", response_model=RecentLectureListResponse)
+async def get_recent_lectures(
+    current_user: Dict[str, Any] = Depends(get_current_user)
+):
+    """
+    Get the 6 most recent lectures across all accessible courses.
+    """
+    return await _get_recent_lectures(current_user)
 
 
 @router.get("/lectures/{lecture_id}/notes", response_model=Optional[ContentResponse])
@@ -397,22 +409,24 @@ async def _get_recent_content(
 
     # Gather lecture titles in batch
     lecture_ids = list({c.lecture_id for c in content_items})
-    lecture_map: Dict[str, str] = {}
+    lecture_map: Dict[str, Lecture] = {}
     for lid in lecture_ids:
         lec = await Lecture.get(lid)
         if lec:
-            lecture_map[lid] = lec.title
+            lecture_map[lid] = lec
 
     items = []
     for c in content_items:
         title = c.content.get("title", "")
+        lecture = lecture_map.get(c.lecture_id)
         items.append(RecentContentItem(
             id=str(c.id),
             lecture_id=c.lecture_id,
             course_id=c.course_id,
+            unit_number=lecture.unit_number if lecture else 0,
             content_type=ContentType(c.content_type.value),
             title=title,
-            lecture_title=lecture_map.get(c.lecture_id, ""),
+            lecture_title=lecture.title if lecture else "",
             course_name=course_map.get(c.course_id, ""),
             content=c.content,
             quality_scores=c.quality_scores or {},
@@ -421,6 +435,50 @@ async def _get_recent_content(
         ))
 
     return RecentContentListResponse(items=items, total=len(items))
+
+
+async def _get_recent_lectures(
+    current_user: Dict[str, Any],
+    limit: int = 6,
+) -> RecentLectureListResponse:
+    """Helper to fetch recent lectures for the current user."""
+    user_id = current_user["id"]
+    role = current_user["role"]
+
+    if role == "teacher":
+        courses = await Course.find({"teacher_id": user_id}).to_list()
+    else:
+        courses = await Course.find({"enrolled_students": user_id}).to_list()
+
+    if not courses:
+        return RecentLectureListResponse(items=[], total=0)
+
+    course_ids = [str(c.id) for c in courses]
+    course_map = {str(c.id): c.name for c in courses}
+
+    lectures = await Lecture.find(
+        {"course_id": {"$in": course_ids}},
+    ).sort(-Lecture.created_at).limit(limit).to_list()
+
+    items = [
+        RecentLectureItem(
+            id=str(lecture.id),
+            lecture_id=str(lecture.id),
+            course_id=lecture.course_id,
+            course_name=course_map.get(lecture.course_id, ""),
+            unit_number=lecture.unit_number,
+            title=lecture.title,
+            description=lecture.description,
+            transcription_status=lecture.transcription_status.value,
+            generation_status=lecture.generation_status.value,
+            created_at=lecture.created_at,
+            transcribed_at=lecture.transcribed_at,
+            generated_at=lecture.generated_at,
+        )
+        for lecture in lectures
+    ]
+
+    return RecentLectureListResponse(items=items, total=len(items))
 
 
 def _to_response(content: GeneratedContent) -> ContentResponse:

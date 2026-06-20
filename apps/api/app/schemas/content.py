@@ -141,6 +141,7 @@ class RecentContentItem(BaseModel):
     id: str
     lecture_id: str
     course_id: str
+    unit_number: int = 0
     content_type: ContentType
     title: str = ""
     lecture_title: str = ""
@@ -157,6 +158,28 @@ class RecentContentItem(BaseModel):
 class RecentContentListResponse(BaseModel):
     """Response for recent content list."""
     items: List[RecentContentItem]
+    total: int
+
+
+class RecentLectureItem(BaseModel):
+    """A single recent lecture item with course info."""
+    id: str
+    lecture_id: str = ""
+    course_id: str
+    course_name: str = ""
+    unit_number: int = 0
+    title: str = ""
+    description: Optional[str] = None
+    transcription_status: str = ""
+    generation_status: str = ""
+    created_at: datetime
+    transcribed_at: Optional[datetime] = None
+    generated_at: Optional[datetime] = None
+
+
+class RecentLectureListResponse(BaseModel):
+    """Response for recent lecture list."""
+    items: List[RecentLectureItem]
     total: int
 
 

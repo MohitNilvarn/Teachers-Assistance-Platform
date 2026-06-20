@@ -72,17 +72,17 @@ export default function UnitDetailPage() {
         }
     }
 
-    const fetchMaterials = async () => {
+    const fetchMaterials = async (isPolling = false) => {
         if (!courseId || !unitNumber) return
         try {
-            setMaterialsLoading(true)
+            if (!isPolling) setMaterialsLoading(true)
             const result = await api.getUnitMaterials(courseId, Number(unitNumber))
             setMaterials(result.materials || [])
         } catch (err: Error | unknown) {
             // Silently fail for materials - they're optional
-            setMaterials([])
+            if (!isPolling) setMaterials([])
         } finally {
-            setMaterialsLoading(false)
+            if (!isPolling) setMaterialsLoading(false)
         }
     }
 
@@ -91,6 +91,23 @@ export default function UnitDetailPage() {
         fetchMaterials()
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [courseId, unitNumber])
+
+    // Poll for materials that are still processing
+    useEffect(() => {
+        let interval: ReturnType<typeof setInterval>
+        const hasProcessing = materials.some(m => m.processing_status === "processing")
+        
+        if (hasProcessing) {
+            interval = setInterval(() => {
+                fetchMaterials(true)
+            }, 3000)
+        }
+        
+        return () => {
+            if (interval) clearInterval(interval)
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [materials])
 
     const handleCreate = async () => {
         if (!courseId || !unitNumber || !audioFile) return

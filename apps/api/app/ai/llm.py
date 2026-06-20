@@ -74,7 +74,7 @@ def get_llm() -> ChatGroq:
             api_key=settings.GROQ_API_KEY,
             model=settings.GROQ_MODEL,
             temperature=0.7,
-            max_tokens=16384,
+            max_tokens=5000,
         )
         
         logger.info("Groq LLM initialized successfully.")
@@ -83,8 +83,8 @@ def get_llm() -> ChatGroq:
 
 
 @retry(
-    stop=stop_after_attempt(3),
-    wait=wait_exponential(multiplier=1, min=2, max=10)
+    stop=stop_after_attempt(10),
+    wait=wait_exponential(multiplier=2, min=2, max=65)
 )
 async def generate_text(
     prompt: str,
@@ -120,8 +120,8 @@ async def generate_text(
 
 
 @retry(
-    stop=stop_after_attempt(4),
-    wait=wait_exponential(multiplier=2, min=4, max=30)
+    stop=stop_after_attempt(10),
+    wait=wait_exponential(multiplier=2, min=5, max=65)
 )
 async def generate_json(
     prompt: str,

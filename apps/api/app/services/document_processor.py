@@ -99,6 +99,13 @@ class PDFProcessor(BaseDocumentProcessor):
             import pytesseract
             from PIL import Image
             import io
+            import sys
+            import os
+
+            if sys.platform == 'win32':
+                tesseract_path = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
+                if os.path.exists(tesseract_path):
+                    pytesseract.pytesseract.tesseract_cmd = tesseract_path
             
             doc = fitz.open(file_path)
             text_parts = []

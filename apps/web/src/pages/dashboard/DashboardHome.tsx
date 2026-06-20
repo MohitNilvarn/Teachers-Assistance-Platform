@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
+import { Link } from "react-router-dom"
 import {
-    FileText, Layers, GraduationCap, Calendar,
+    FileText, Layers, GraduationCap,
     ArrowUpRight, BookOpen,
 } from "lucide-react"
 import StudentSubjectsDashboard from "../../components/dashboard/years/StudentSubjectsDashboard"
 import TeacherDashboard from "./TeacherDashboard"
 import { api } from "../../lib/api"
-import type { Course } from "../../types"
+import type { Course, RecentContentItem, RecentLectureItem } from "../../types"
 
 const FADE_UP = {
     initial: { opacity: 0, y: 16 },
@@ -23,6 +24,10 @@ export default function DashboardHome() {
     const [userName, setUserName] = useState("User")
     const [userYear, setUserYear] = useState("")
     const [courses, setCourses] = useState<Course[]>([])
+    const [recentNotes, setRecentNotes] = useState<RecentContentItem[]>([])
+    const [recentAssignments, setRecentAssignments] = useState<RecentContentItem[]>([])
+    const [recentLectures, setRecentLectures] = useState<RecentLectureItem[]>([])
+    const [recentLoading, setRecentLoading] = useState(true)
     const role = sessionStorage.getItem("role")
 
     useEffect(() => {
@@ -60,6 +65,28 @@ export default function DashboardHome() {
         loadCourses()
     }, [role, userYear])
 
+    useEffect(() => {
+        if (role !== "student") return
+
+        async function loadRecentAccess() {
+            try {
+                const [notes, assignments, lectures] = await Promise.all([
+                    api.getRecentNotes().catch(() => ({ items: [] as RecentContentItem[] })),
+                    api.getRecentAssignments().catch(() => ({ items: [] as RecentContentItem[] })),
+                    api.getRecentLectures().catch(() => ({ items: [] as RecentLectureItem[] })),
+                ])
+
+                setRecentNotes(notes.items)
+                setRecentAssignments(assignments.items)
+                setRecentLectures(lectures.items)
+            } finally {
+                setRecentLoading(false)
+            }
+        }
+
+        loadRecentAccess()
+    }, [role])
+
     const isTeacher = role === "teacher"
     const isStudent = role === "student"
 
@@ -75,6 +102,42 @@ export default function DashboardHome() {
 
     const totalSubjects = courses.length
     const totalUnits = courses.reduce((sum, c) => sum + c.units.length, 0)
+
+    const recentCards = [
+        {
+            key: "notes",
+            label: "Recent Notes",
+            icon: FileText,
+            item: recentNotes[0],
+            href: recentNotes[0]
+                ? `/dashboard/course/${recentNotes[0].course_id}/unit/${recentNotes[0].unit_number}/lecture/${recentNotes[0].lecture_id}`
+                : "/dashboard/notes",
+            empty: "No recent notes yet",
+            actionLabel: "Open note",
+        },
+        {
+            key: "assignments",
+            label: "Recent Assignments",
+            icon: BookOpen,
+            item: recentAssignments[0],
+            href: recentAssignments[0]
+                ? `/dashboard/course/${recentAssignments[0].course_id}/unit/${recentAssignments[0].unit_number}/lecture/${recentAssignments[0].lecture_id}`
+                : "/dashboard/assignments",
+            empty: "No recent assignments yet",
+            actionLabel: "Open assignment",
+        },
+        {
+            key: "lectures",
+            label: "Recent Lectures",
+            icon: Layers,
+            item: recentLectures[0],
+            href: recentLectures[0]
+                ? `/dashboard/course/${recentLectures[0].course_id}/unit/${recentLectures[0].unit_number}/lecture/${recentLectures[0].lecture_id}`
+                : "/dashboard",
+            empty: "No recent lectures yet",
+            actionLabel: "Open lecture",
+        },
+    ]
 
     return (
         <motion.div className="min-h-[calc(100vh-4rem)] space-y-8" initial="initial" animate="animate" variants={STAGGER}>
@@ -118,28 +181,57 @@ export default function DashboardHome() {
                 </div>
             </motion.div>
 
-            {/* ── Quick Access Cards ── */}
+            {/* ── Recent Access ── */}
             <motion.div variants={FADE_UP}>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {[
-                        { icon: FileText, title: "Notes", href: "/dashboard/notes", sub: totalSubjects > 0 ? `From ${totalSubjects} subject${totalSubjects !== 1 ? "s" : ""}` : "No subjects yet" },
-                        { icon: BookOpen, title: "Assignments", href: "/dashboard/assignments", sub: totalSubjects > 0 ? `From ${totalSubjects} subject${totalSubjects !== 1 ? "s" : ""}` : "No subjects yet" },
-                        { icon: Layers, title: "Flashcards", href: "/dashboard/flashcards", sub: totalSubjects > 0 ? `From ${totalSubjects} subject${totalSubjects !== 1 ? "s" : ""}` : "No subjects yet" },
-                    ].map((item) => (
-                        <a key={item.title} href={item.href}
-                           className="group bg-white rounded-2xl border border-[#eaeaec] hover:shadow-md transition-all duration-300 overflow-hidden">
-                            <div className="p-5 flex items-center gap-4">
-                                <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#f0f0f5]">
-                                    <item.icon className="h-5 w-5 text-[#6b6b6b] group-hover:text-[#c2185b] transition-colors" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                    <h3 className="text-[15px] font-semibold text-[#1a1a1a]">{item.title}</h3>
-                                    <p className="text-[12px] text-[#999] mt-0.5">{item.sub}</p>
-                                </div>
-                                <ArrowUpRight className="h-5 w-5 text-[#ccc] group-hover:text-[#c2185b] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
-                            </div>
-                        </a>
-                    ))}
+                    {recentLoading ? (
+                        <div className="col-span-3 flex items-center justify-center py-10 text-sm text-[#999]">
+                            Loading recent access...
+                        </div>
+                    ) : (
+                        recentCards.map((card) => {
+                            const Icon = card.icon
+                            const item = card.item
+                            return (
+                                <Link
+                                    key={card.key}
+                                    to={card.href}
+                                    className="group bg-white rounded-2xl border border-[#eaeaec] hover:shadow-md transition-all duration-300 overflow-hidden"
+                                >
+                                    <div className="p-5 space-y-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 bg-[#f0f0f5]">
+                                                <Icon className="h-5 w-5 text-[#6b6b6b] group-hover:text-[#c2185b] transition-colors" />
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <h3 className="text-[15px] font-semibold text-[#1a1a1a]">{card.label}</h3>
+                                                <p className="text-[12px] text-[#999] mt-0.5">
+                                                    {item ? `${item.course_name} · Unit ${item.unit_number}` : card.empty}
+                                                </p>
+                                            </div>
+                                            <ArrowUpRight className="h-5 w-5 text-[#ccc] group-hover:text-[#c2185b] group-hover:-translate-y-0.5 group-hover:translate-x-0.5 transition-all flex-shrink-0" />
+                                        </div>
+
+                                        <div className="rounded-xl bg-[#faf9f7] border border-[#eaeaec] p-4 min-h-[88px]">
+                                            {item ? (
+                                                <>
+                                                    <p className="text-[11px] font-mono text-[#999] uppercase tracking-widest">{card.actionLabel}</p>
+                                                    <p className="text-[14px] font-semibold text-[#1a1a1a] mt-1 truncate">
+                                                        {item.title || card.actionLabel}
+                                                    </p>
+                                                    <p className="text-[12px] text-[#6b6b6b] mt-1 truncate">Tap to open the latest item.</p>
+                                                </>
+                                            ) : (
+                                                <div className="flex h-full items-center justify-center text-[12px] text-[#999]">
+                                                    {card.empty}
+                                                </div>
+                                            )}
+                                        </div>
+                                    </div>
+                                </Link>
+                            )
+                        })
+                    )}
                 </div>
             </motion.div>
 
