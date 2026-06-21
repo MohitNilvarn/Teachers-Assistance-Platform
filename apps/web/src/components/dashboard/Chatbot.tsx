@@ -1,6 +1,9 @@
 import { useState, useRef, useEffect } from "react"
 import { MessageSquare, X, Send, Sparkles, Bot, User } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
+import { useLocation } from "react-router-dom"
+import { api } from "../../lib/api"
+import { LatexRenderer } from "../ui/LatexRenderer"
 
 interface Message {
     role: "user" | "bot"
@@ -21,6 +24,7 @@ export function Chatbot() {
     const [isTyping, setIsTyping] = useState(false)
     const messagesEndRef = useRef<HTMLDivElement>(null)
     const inputRef = useRef<HTMLInputElement>(null)
+    const location = useLocation()
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
@@ -36,26 +40,69 @@ export function Chatbot() {
         }
     }, [isOpen])
 
-    const handleSend = () => {
-        if (!input.trim()) return
+    const handleSend = async () => {
+        if (!input.trim() || isTyping) return
 
         const userMsg: Message = { role: "user", text: input.trim(), timestamp: new Date() }
-        setMessages(prev => [...prev, userMsg])
+        const newMessages = [...messages, userMsg]
+        setMessages(newMessages)
         setInput("")
         setIsTyping(true)
 
-        // Simulate bot response
-        setTimeout(() => {
-            setIsTyping(false)
+        // Extract IDs from URL path since useParams() fails in layout
+        const pathParts = location.pathname.split("/")
+        let currentCourseId = undefined
+        let currentLectureId = undefined
+        
+        const courseIdx = pathParts.indexOf("course")
+        if (courseIdx !== -1 && courseIdx + 1 < pathParts.length) {
+            currentCourseId = pathParts[courseIdx + 1]
+        } else {
+            const subjectIdx = pathParts.indexOf("subject")
+            if (subjectIdx !== -1 && subjectIdx + 1 < pathParts.length) {
+                currentCourseId = pathParts[subjectIdx + 1]
+            }
+        }
+        
+        const lectureIdx = pathParts.indexOf("lecture")
+        if (lectureIdx !== -1 && lectureIdx + 1 < pathParts.length) {
+            currentLectureId = pathParts[lectureIdx + 1]
+        }
+
+        try {
+            const historyForApi = newMessages.map(m => ({
+                role: m.role === "bot" ? "assistant" : "user",
+                content: m.text
+            }))
+            
+            const response = await api.askChatbot({
+                query: userMsg.text,
+                course_id: currentCourseId,
+                lecture_id: currentLectureId,
+                history: historyForApi.slice(0, -1)
+            })
+
             setMessages(prev => [
                 ...prev,
                 {
                     role: "bot",
-                    text: "I'm a demo assistant for now. Once connected, I'll be able to help you with course content, explain concepts from your lectures, and generate study materials!",
+                    text: response.response,
                     timestamp: new Date(),
                 },
             ])
-        }, 1200)
+        } catch (error) {
+            console.error(error)
+            setMessages(prev => [
+                ...prev,
+                {
+                    role: "bot",
+                    text: "Sorry, I encountered an error. Please try again.",
+                    timestamp: new Date(),
+                },
+            ])
+        } finally {
+            setIsTyping(false)
+        }
     }
 
     const formatTime = (date: Date) => {
@@ -121,7 +168,13 @@ export function Chatbot() {
                                                     ? "bg-[#000000] text-white rounded-2xl rounded-br-lg shadow-sm"
                                                     : "bg-white border border-[#e5e5ea] text-[#3f3f46] rounded-2xl rounded-bl-lg shadow-sm"
                                             }`}>
-                                                {msg.text}
+                                                {msg.role === "bot" ? (
+                                                    <div className="prose prose-sm prose-p:my-1 prose-ul:my-1 max-w-none">
+                                                        <LatexRenderer text={msg.text} />
+                                                    </div>
+                                                ) : (
+                                                    msg.text
+                                                )}
                                             </div>
                                             <p className={`text-[9px] text-[#86868b] mt-1 ${msg.role === "user" ? "text-right" : "text-left"} px-1`}>
                                                 {formatTime(msg.timestamp)}

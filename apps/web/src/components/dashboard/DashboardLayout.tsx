@@ -2,6 +2,8 @@ import { Sidebar } from "../ui/Sidebar"
 import { Outlet, useLocation } from "react-router-dom"
 import { Chatbot } from "./Chatbot"
 import { Search, Bell, Command } from "lucide-react"
+import { useState } from "react"
+import { cn } from "../../lib/utils"
 
 function getBreadcrumbs(pathname: string) {
     const parts = pathname.split("/").filter(Boolean)
@@ -35,11 +37,12 @@ function getBreadcrumbs(pathname: string) {
 export function DashboardLayout() {
     const location = useLocation()
     const crumbs = getBreadcrumbs(location.pathname)
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
     return (
         <div className="h-screen bg-[#f8f8fa] text-foreground flex overflow-hidden">
-            <Sidebar />
-            <div className="flex-1 ml-[var(--sidebar-width)] flex flex-col h-full overflow-hidden">
+            <Sidebar collapsed={sidebarCollapsed} onToggle={() => setSidebarCollapsed(!sidebarCollapsed)} />
+            <div className={cn("flex-1 flex flex-col h-full overflow-hidden transition-all duration-300", sidebarCollapsed ? "ml-[64px]" : "ml-[var(--sidebar-width)]")}>
                 {/* Fixed Top Header */}
                 <header className="h-[var(--header-height)] flex items-center justify-between px-8 bg-white/90 backdrop-blur-xl border-b border-[#eaeaec] flex-shrink-0 z-30">
                     {/* Breadcrumbs */}
