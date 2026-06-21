@@ -60,8 +60,6 @@ from app.ai.external_knowledge import (
 from app.ai.evaluation import evaluate_content
 from app.models.content import GeneratedContent, ContentType
 from app.models.lecture import Lecture, GenerationStatus
-from app.services.diagram_search import fetch_diagrams_for_lecture
-
 logger = get_logger("TAP.AIGraph")
 
 
@@ -540,9 +538,7 @@ async def generate_notes_node(state: ContentGenerationState) -> ContentGeneratio
     
     logger.info(f"Generating notes for lecture: {state['lecture_id']}")
     
-    import asyncio
-    logger.info("Waiting 65s before notes generation to respect rate limits...")
-    await asyncio.sleep(65)
+    # Removed sleep since we are using OpenRouter now
     
     try:
         # Select transcript based on strategy
@@ -581,83 +577,6 @@ async def generate_notes_node(state: ContentGenerationState) -> ContentGeneratio
         }
 
 
-async def fetch_diagrams_node(state: ContentGenerationState) -> ContentGenerationState:
-    """
-    Node: Fetch relevant diagrams from Wikimedia Commons.
-    
-    Runs AFTER generate_notes so it can use the structured diagram
-    queries that the LLM produced as part of notes generation.
-    
-    The LLM generates a 'diagrams' array in the notes JSON with:
-      - title: specific diagram concept
-      - search_queries: precise, technical search terms
-      - description: what the diagram should show
-      - relevance: which section it maps to
-    
-    This node takes those specs, searches Wikimedia Commons, and
-    stores the results back in the state for persistence.
-    """
-    logger.info(f"Fetching diagrams for lecture: {state['lecture_id']}")
-    
-    try:
-        # Extract diagram specs from the generated notes
-        notes = state.get("notes")
-        if not notes:
-            logger.info("No notes available, skipping diagram fetch")
-            return {**state, "diagrams": []}
-        
-        diagram_specs = notes.get("diagrams", [])
-        
-        # Backward compatibility: handle old summary_diagram_description format
-        if not diagram_specs and notes.get("summary_diagram_description"):
-            desc = notes["summary_diagram_description"]
-            lecture_title = state.get("lecture_title", "")
-            diagram_specs = [{
-                "title": lecture_title,
-                "search_queries": [
-                    f"{lecture_title} diagram",
-                    f"{lecture_title} block diagram schematic",
-                ],
-                "description": desc,
-                "relevance": "overview",
-            }]
-        
-        if not diagram_specs:
-            logger.info("No diagram specs in notes, skipping")
-            return {**state, "diagrams": []}
-        
-        logger.info(
-            f"Found {len(diagram_specs)} diagram specs in notes, "
-            f"searching Wikimedia Commons..."
-        )
-        
-        # Fetch diagrams from Wikimedia Commons
-        diagram_results = await fetch_diagrams_for_lecture(
-            diagram_specs=diagram_specs,
-            max_diagrams=4,
-        )
-        
-        # Log results summary
-        total_found = sum(
-            len(d.get("results", []))
-            for d in diagram_results
-        )
-        logger.info(
-            f"Diagram fetch complete: {total_found} images found "
-            f"across {len(diagram_results)} concepts"
-        )
-        
-        return {
-            **state,
-            "diagrams": diagram_results,
-        }
-        
-    except Exception as e:
-        logger.warning(f"Diagram fetch failed (non-fatal): {e}")
-        return {
-            **state,
-            "diagrams": [],
-        }
 
 
 async def generate_assignment_node(state: ContentGenerationState) -> ContentGenerationState:
@@ -673,9 +592,7 @@ async def generate_assignment_node(state: ContentGenerationState) -> ContentGene
     
     logger.info(f"Generating assignment for lecture: {state['lecture_id']}")
     
-    import asyncio
-    logger.info("Waiting 65s before assignment generation to respect rate limits...")
-    await asyncio.sleep(65)
+    # Removed sleep since we are using OpenRouter now
     
     try:
         # Select transcript based on strategy
@@ -727,9 +644,7 @@ async def generate_flashcards_node(state: ContentGenerationState) -> ContentGene
     
     logger.info(f"Generating flashcards for lecture: {state['lecture_id']}")
     
-    import asyncio
-    logger.info("Waiting 65s before flashcards generation to respect rate limits...")
-    await asyncio.sleep(65)
+    # Removed sleep since we are using OpenRouter now
     
     try:
         # Select transcript based on strategy
@@ -905,13 +820,7 @@ async def save_content_node(state: ContentGenerationState) -> ContentGenerationS
         # Save notes (merge diagram results into content)
         if state.get("notes"):
             notes_content = {**state["notes"]}
-            # Merge fetched diagram results into notes content
-            if state.get("diagrams"):
-                notes_content["fetched_diagrams"] = state["diagrams"]
-                logger.info(
-                    f"Merged {len(state['diagrams'])} diagram concepts "
-                    f"into notes content"
-                )
+
             notes_doc = GeneratedContent(
                 lecture_id=state["lecture_id"],
                 course_id=state["course_id"],
@@ -1004,7 +913,6 @@ def build_content_generation_graph() -> StateGraph:
     workflow.add_node("retrieve_context", retrieve_context_node)
     workflow.add_node("external_knowledge", external_knowledge_node)
     workflow.add_node("generate_notes", generate_notes_node)
-    workflow.add_node("fetch_diagrams", fetch_diagrams_node)
     workflow.add_node("generate_assignment", generate_assignment_node)
     workflow.add_node("generate_flashcards", generate_flashcards_node)
     workflow.add_node("evaluate_content", evaluate_content_node)
@@ -1015,8 +923,7 @@ def build_content_generation_graph() -> StateGraph:
     workflow.add_edge("summarize_transcript", "retrieve_context")
     workflow.add_edge("retrieve_context", "external_knowledge")
     workflow.add_edge("external_knowledge", "generate_notes")
-    workflow.add_edge("generate_notes", "fetch_diagrams")
-    workflow.add_edge("fetch_diagrams", "generate_assignment")
+    workflow.add_edge("generate_notes", "generate_assignment")
     workflow.add_edge("generate_assignment", "generate_flashcards")
     workflow.add_edge("generate_flashcards", "evaluate_content")
     workflow.add_edge("evaluate_content", "save_content")

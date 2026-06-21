@@ -26,7 +26,7 @@ python-dotenv
 langchain
 langchain-core
 langchain-community
-langchain-groq
+langchain-openai
 langgraph
 
 # Vector Stores (using MongoDB Atlas Vector Search - no external deps needed)

@@ -1,12 +1,13 @@
 # File: app/ai/llm.py
 """
-Groq LLM wrapper using LangChain.
+OpenRouter LLM wrapper using LangChain.
 """
 import re
 import json
-from typing import Optional, Dict, Any
+from typing import Optional, Dict, Any, List
+from langchain_openai import ChatOpenAI
 from langchain_groq import ChatGroq
-from langchain_core.messages import HumanMessage, SystemMessage
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage, BaseMessage
 from tenacity import retry, stop_after_attempt, wait_exponential
 
 from app.core.config import settings
@@ -60,26 +61,48 @@ def _parse_json_safe(text: str) -> Dict[str, Any]:
     return json.loads(fixed2)
 
 # Global LLM instance
-_llm: Optional[ChatGroq] = None
+_llm: Optional[ChatOpenAI] = None
 
 
-def get_llm() -> ChatGroq:
-    """Get or create the Groq LLM instance."""
+def get_llm() -> ChatOpenAI:
+    """Get or create the OpenRouter LLM instance."""
     global _llm
     
     if _llm is None:
-        logger.info(f"Initializing Groq LLM with model: {settings.GROQ_MODEL}")
+        logger.info(f"Initializing OpenRouter LLM with model: {settings.OPENROUTER_MODEL}")
         
-        _llm = ChatGroq(
-            api_key=settings.GROQ_API_KEY,
-            model=settings.GROQ_MODEL,
+        _llm = ChatOpenAI(
+            api_key=settings.OPENROUTER_API_KEY,
+            model=settings.OPENROUTER_MODEL,
+            base_url="https://openrouter.ai/api/v1",
             temperature=0.7,
             max_tokens=5000,
         )
         
-        logger.info("Groq LLM initialized successfully.")
+        logger.info("OpenRouter LLM initialized successfully.")
     
     return _llm
+
+
+_chat_llm: Optional[ChatGroq] = None
+
+def get_chat_llm() -> ChatGroq:
+    """Get or create the Groq LLM instance for the Chatbot."""
+    global _chat_llm
+    
+    if _chat_llm is None:
+        logger.info(f"Initializing Groq Chat LLM with model: {settings.GROQ_CHAT_MODEL}")
+        
+        _chat_llm = ChatGroq(
+            api_key=settings.GROQ_CHAT_API_KEY,
+            model=settings.GROQ_CHAT_MODEL,
+            temperature=0.7,
+            max_tokens=2048,
+        )
+        
+        logger.info("Groq Chat LLM initialized successfully.")
+    
+    return _chat_llm
 
 
 @retry(
@@ -180,6 +203,53 @@ async def generate_json(
         raise
     except Exception as e:
         logger.error(f"LLM JSON generation error: {str(e)}")
+        raise
+
+
+@retry(
+    stop=stop_after_attempt(3),
+    wait=wait_exponential(multiplier=2, min=2, max=10)
+)
+async def chat_with_rag(
+    query: str,
+    context: str,
+    history: List[Dict[str, str]] = None
+) -> str:
+    """
+    Generate a chatbot response using the RAG context and conversation history.
+    """
+    if history is None:
+        history = []
+        
+    llm = get_chat_llm()
+    
+    system_prompt = (
+        "You are an intelligent Teacher Assistance Platform (TAP) Chatbot. "
+        "You help students and teachers understand the course materials. "
+        "Use the provided context to answer the user's question. "
+        "If the context does not contain the answer, say that you don't know based on the provided materials, but you can try to help generally. "
+        "Be concise, clear, and educational.\n\n"
+        "CONTEXT FROM LECTURE MATERIALS AND NOTES:\n"
+        f"{context}\n"
+    )
+    
+    messages: List[BaseMessage] = [SystemMessage(content=system_prompt)]
+    
+    for msg in history:
+        role = msg.get("role", "user")
+        content = msg.get("content", "")
+        if role == "user":
+            messages.append(HumanMessage(content=content))
+        elif role == "assistant":
+            messages.append(AIMessage(content=content))
+            
+    messages.append(HumanMessage(content=query))
+    
+    try:
+        response = await llm.ainvoke(messages)
+        return response.content
+    except Exception as e:
+        logger.error(f"Chat LLM error: {str(e)}")
         raise
 
 

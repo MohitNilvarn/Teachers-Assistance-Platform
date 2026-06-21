@@ -20,6 +20,7 @@ from app.api.v1 import users
 from app.api.v1 import realtime
 from app.api.v1 import subjects
 from app.api.v1 import teachers
+from app.api.v1 import chat
 
 # Setup Logging
 setup_logging()
@@ -139,6 +140,12 @@ app.include_router(
     teachers.router,
     prefix="/api/v1/teachers",
     tags=["Teachers"]
+)
+
+app.include_router(
+    chat.router,
+    prefix="/api/v1",
+    tags=["Chat"]
 )
 
 

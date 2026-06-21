@@ -41,9 +41,13 @@ class Settings:
     REDIS_URL: str = os.getenv("REDIS_URL", "")
     REDIS_ENABLED: bool = bool(os.getenv("REDIS_URL"))
     
-    # Groq API (LLM)
-    GROQ_API_KEY: str = os.getenv("GROQ_API_KEY", "your-groq-api-key-here")
-    GROQ_MODEL: str = os.getenv("GROQ_MODEL", "llama3-70b-8192")
+    # OpenRouter API (LLM)
+    OPENROUTER_API_KEY: str = os.getenv("OPENROUTER_API_KEY", "your-openrouter-api-key-here")
+    OPENROUTER_MODEL: str = os.getenv("OPENROUTER_MODEL", "meta-llama/llama-3-70b-instruct")
+    
+    # Groq API (Chatbot)
+    GROQ_CHAT_API_KEY: str = os.getenv("GROQ_CHAT_API_KEY", "")
+    GROQ_CHAT_MODEL: str = os.getenv("GROQ_CHAT_MODEL", "llama-3.1-8b-instant")
     
     # HuggingFace (Embeddings)
     HUGGINGFACE_API_KEY: str = os.getenv("HUGGINGFACE_API_KEY", "your-huggingface-api-key-here")
@@ -96,8 +100,11 @@ class Settings:
         if not self.REDIS_URL:
             logger.info("Redis not configured - caching disabled")
         
-        if self.GROQ_API_KEY == "your-groq-api-key-here":
-            logger.warning("Using placeholder GROQ_API_KEY - LLM calls will fail")
+        if self.OPENROUTER_API_KEY == "your-openrouter-api-key-here":
+            logger.warning("Using placeholder OPENROUTER_API_KEY - LLM calls will fail")
+            
+        if not self.GROQ_CHAT_API_KEY:
+            logger.warning("MISSING ENV VAR: GROQ_CHAT_API_KEY - Chatbot will fail")
         
         if self.HUGGINGFACE_API_KEY == "your-huggingface-api-key-here":
             logger.info("Using placeholder HUGGINGFACE_API_KEY - using local embeddings")
