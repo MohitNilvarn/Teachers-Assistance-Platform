@@ -5,7 +5,7 @@ import {
     FileText, Layers, GraduationCap,
     ArrowUpRight, BookOpen,
 } from "lucide-react"
-import StudentSubjectsDashboard from "../../components/dashboard/years/StudentSubjectsDashboard"
+import StudentSubjectsDashboard from "../../components/dashboard/StudentSubjectsDashboard"
 import TeacherDashboard from "./TeacherDashboard"
 import { api } from "../../lib/api"
 import type { Course, RecentContentItem, RecentLectureItem } from "../../types"

@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import {
     ArrowLeft, FileText, BookOpen, Layers, Loader2, AlertCircle, CheckCircle2,
     PenLine, Lightbulb, Target, Hash, Star, ChevronRight, Sigma,
-    Calculator, GitBranch, Search, ImageIcon, X, ExternalLink, RefreshCw,
+    Calculator, GitBranch,
 } from "lucide-react"
 import { api } from "../../lib/api"
 import type { GeneratedContent } from "../../types"
@@ -158,7 +158,7 @@ export default function LectureContentPage() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.25, ease: [0.25, 0.46, 0.45, 0.94] }}
             >
-                {activeTab === "notes" && <NotesViewer content={notes} lectureId={lectureId || ""} />}
+                {activeTab === "notes" && <NotesViewer content={notes} />}
                 {activeTab === "assignment" && <AssignmentViewer content={assignment} />}
                 {activeTab === "flashcards" && <FlashcardsViewer content={flashcards} />}
             </motion.div>
@@ -170,7 +170,7 @@ export default function LectureContentPage() {
 // NOTES VIEWER — Editorial Enterprise Design
 // ═══════════════════════════════════════════════
 
-function NotesViewer({ content, lectureId }: { content: GeneratedContent | null; lectureId: string }) {
+function NotesViewer({ content }: { content: GeneratedContent | null }) {
     if (!content) {
         return (
             <div className="bg-white rounded-2xl border border-[#eaeaec] overflow-hidden">

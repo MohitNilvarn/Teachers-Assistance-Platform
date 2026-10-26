@@ -78,7 +78,7 @@ export default function UnitDetailPage() {
             if (!isPolling) setMaterialsLoading(true)
             const result = await api.getUnitMaterials(courseId, Number(unitNumber))
             setMaterials(result.materials || [])
-        } catch (err: Error | unknown) {
+        } catch {
             // Silently fail for materials - they're optional
             if (!isPolling) setMaterials([])
         } finally {

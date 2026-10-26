@@ -166,7 +166,7 @@ export default function TeacherDashboard() {
                             { icon: Mic, label: "Record", desc: "Live lectures" },
                             { icon: Sparkles, label: "Generate", desc: "AI content" },
                             { icon: Users, label: "Share", desc: "With students" },
-                        ].map((f, i) => (
+                        ].map((f) => (
                             <div key={f.label} className="text-center p-4 rounded-2xl bg-white border border-[#eaeaec]">
                                 <div className="w-10 h-10 rounded-xl mx-auto mb-2 flex items-center justify-center bg-[#f0f0f5]">
                                     <f.icon className="h-5 w-5 text-[#6b6b6b]" />

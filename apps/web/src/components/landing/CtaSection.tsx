@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "./button-landing";
+import { LandingButton } from "./LandingButton";
 import { ArrowRight } from "lucide-react";
-import { AnimatedTetrahedron } from "./animated-tetrahedron";
+import { AnimatedTetrahedron } from "./AnimatedTetrahedron";
 
 export function CtaSection() {
   const [isVisible, setIsVisible] = useState(false);
@@ -63,21 +63,21 @@ export function CtaSection() {
 
                 <div className="flex flex-col sm:flex-row items-start gap-4">
                   <Link to="/signup">
-                    <Button
+                    <LandingButton
                       size="lg"
                       className="bg-foreground hover:bg-foreground/90 text-background px-8 h-14 text-base rounded-full group"
                     >
                       Get Started Free
                       <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-                    </Button>
+                    </LandingButton>
                   </Link>
-                  <Button
+                  <LandingButton
                     size="lg"
                     variant="outline"
                     className="h-14 px-8 text-base rounded-full border-foreground/20 hover:bg-foreground/5"
                   >
                     Talk to sales
-                  </Button>
+                  </LandingButton>
                 </div>
 
                 <p className="text-sm text-muted-foreground mt-8 font-mono">

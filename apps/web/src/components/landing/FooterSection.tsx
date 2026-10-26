@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { ArrowUpRight } from "lucide-react";
-import { AnimatedWave } from "./animated-wave";
+import { AnimatedWave } from "./AnimatedWave";
 
 const footerLinks = {
   Product: [

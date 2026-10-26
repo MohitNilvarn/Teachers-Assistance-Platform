@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "./button-landing";
+import { LandingButton } from "./LandingButton";
 import { Menu, X } from "lucide-react";
 
 const navLinks = [
@@ -68,12 +68,12 @@ export function Navigation() {
               Sign In
             </Link>
             <Link to="/signup">
-              <Button
+              <LandingButton
                 size="sm"
                 className={`bg-foreground hover:bg-foreground/90 text-background rounded-full transition-all duration-500 ${isScrolled ? "px-4 h-8 text-xs" : "px-6"}`}
               >
                 Get Started
-              </Button>
+              </LandingButton>
             </Link>
           </div>
 
@@ -131,19 +131,19 @@ export function Navigation() {
           style={{ transitionDelay: isMobileMenuOpen ? "300ms" : "0ms" }}
           >
             <Link to="/login" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
-              <Button 
+              <LandingButton 
                 variant="outline" 
                 className="w-full rounded-full h-14 text-base"
               >
                 Sign In
-              </Button>
+              </LandingButton>
             </Link>
             <Link to="/signup" className="flex-1" onClick={() => setIsMobileMenuOpen(false)}>
-              <Button 
+              <LandingButton 
                 className="w-full bg-foreground text-background rounded-full h-14 text-base"
               >
                 Get Started
-              </Button>
+              </LandingButton>
             </Link>
           </div>
         </div>

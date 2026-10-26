@@ -28,7 +28,9 @@ class Settings:
     
     # Project Info
     PROJECT_NAME: str = "Teacher Assistance Platform"
-    
+    VERSION: str = "1.0.0"
+    API_V1_PREFIX: str = "/api/v1"
+
     # Supabase (Auth)
     SUPABASE_URL: str = os.getenv("SUPABASE_URL", "")
     SUPABASE_KEY: str = os.getenv("SUPABASE_KEY", "")

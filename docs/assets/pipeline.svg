@@ -1,0 +1,215 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="title desc">
+  <title id="title">How TAP works</title>
+  <desc id="desc">Lecture audio is transcribed while course materials are chunked and embedded. Both feed hybrid retrieval, then LangGraph generates notes, assignments and flashcards.</desc>
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9b6dff"/>
+      <stop offset=".55" stop-color="#e0457b"/>
+      <stop offset="1" stop-color="#f0b35a"/>
+    </linearGradient>
+    <linearGradient id="flow" x1="0" y1="0" x2="1200" y2="0" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#9b6dff"/>
+      <stop offset=".55" stop-color="#e0457b"/>
+      <stop offset="1" stop-color="#f0b35a"/>
+    </linearGradient>
+    <radialGradient id="dot-glow">
+      <stop offset="0" stop-color="#ffffff" stop-opacity=".9"/>
+      <stop offset=".3" stop-color="#e0457b" stop-opacity=".55"/>
+      <stop offset="1" stop-color="#e0457b" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="ambient" cx=".5" cy=".5" r=".6">
+      <stop offset="0" stop-color="#5b2bb5" stop-opacity=".22"/>
+      <stop offset=".5" stop-color="#5b2bb5" stop-opacity=".08"/>
+      <stop offset="1" stop-color="#5b2bb5" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#fff" stroke-opacity=".035"/>
+    </pattern>
+    <clipPath id="frame"><rect width="1200" height="400" rx="28"/></clipPath>
+
+    <!-- Connector paths (shared by the static lines and the moving pulses) -->
+    <path id="p-a1" d="M210 105H266"/>
+    <path id="p-b1" d="M210 295H266"/>
+    <path id="p-a2" d="M456 105C484 105 484 200 512 200"/>
+    <path id="p-b2" d="M456 295C484 295 484 200 512 200"/>
+    <path id="p-c" d="M702 200H758"/>
+    <path id="p-o1" d="M948 200C976 200 976 115 1004 115"/>
+    <path id="p-o2" d="M948 200H1004"/>
+    <path id="p-o3" d="M948 200C976 200 976 285 1004 285"/>
+
+    <!-- Icons (Lucide, ISC license) -->
+    <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></symbol>
+    <symbol id="i-files" viewBox="0 0 24 24"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></symbol>
+    <symbol id="i-wave" viewBox="0 0 24 24"><path d="M2 10v3"/><path d="M6 6v11"/><path d="M10 3v18"/><path d="M14 8v7"/><path d="M18 5v13"/><path d="M22 10v3"/></symbol>
+    <symbol id="i-cube" viewBox="0 0 24 24"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"/><path d="m3.3 7 8.7 5 8.7-5"/><path d="M12 22V12"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></symbol>
+    <symbol id="i-spark" viewBox="0 0 24 24"><path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/><path d="M20 3v4"/><path d="M22 5h-4"/></symbol>
+    <symbol id="i-book" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></symbol>
+    <symbol id="i-clip" viewBox="0 0 24 24"><rect width="8" height="4" x="8" y="2" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/><path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/><path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/></symbol>
+  </defs>
+
+  <style>
+    .sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif; }
+    /* Sized for GitHub's ~840px README column (~0.7x scale) */
+    .title { font-size: 18px; font-weight: 600; fill: #f0ede8; text-anchor: middle; }
+    .sub { font-size: 14px; fill: #8a867f; text-anchor: middle; }
+    .out-title { font-size: 17px; font-weight: 600; fill: #f0ede8; }
+    .out-sub { font-size: 13px; fill: #8a867f; }
+    .lane { font-size: 12px; font-weight: 600; letter-spacing: 1.8px; fill: #6b675f; }
+
+    .box { fill: #141416; stroke: #fff; stroke-opacity: .08; }
+    .icon-bg { fill: url(#accent); fill-opacity: .12; stroke: url(#accent); stroke-opacity: .45; }
+    .icon { fill: none; stroke: #f0ede8; stroke-width: 1.75; stroke-linecap: round; stroke-linejoin: round; }
+
+    .rail { fill: none; stroke: #fff; stroke-opacity: .1; stroke-width: 1.5; }
+    .flow { fill: none; stroke: url(#flow); stroke-width: 1.5; stroke-dasharray: 3 7; stroke-opacity: .8; animation: march 1.1s linear infinite; }
+    @keyframes march { to { stroke-dashoffset: -10; } }
+
+    /* Each stage lights up as the pulse reaches it (4.8s cycle, synced with the SMIL pulses below) */
+    .glow { fill: url(#accent); fill-opacity: .06; stroke: url(#accent); stroke-width: 1.5; opacity: 0; animation: glow 4.8s ease-in-out infinite both; }
+    .s2 { animation-delay: .72s; }
+    .s3 { animation-delay: 1.68s; }
+    .s4 { animation-delay: 2.35s; }
+    .s5 { animation-delay: 3.17s; }
+    @keyframes glow { 0% { opacity: 0; } 6% { opacity: 1; } 22%, 100% { opacity: 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+      .pulses { display: none; }
+    }
+  </style>
+
+  <g clip-path="url(#frame)">
+    <rect width="1200" height="400" fill="#0a0a0b"/>
+    <rect width="1200" height="400" fill="url(#grid)"/>
+    <ellipse cx="730" cy="200" rx="560" ry="260" fill="url(#ambient)"/>
+
+    <text class="sans lane" x="24" y="34">AUDIO</text>
+    <text class="sans lane" x="24" y="378">DOCUMENTS</text>
+
+    <!-- Connectors -->
+    <g>
+      <use xlink:href="#p-a1" class="rail"/><use xlink:href="#p-b1" class="rail"/>
+      <use xlink:href="#p-a2" class="rail"/><use xlink:href="#p-b2" class="rail"/>
+      <use xlink:href="#p-c" class="rail"/>
+      <use xlink:href="#p-o1" class="rail"/><use xlink:href="#p-o2" class="rail"/><use xlink:href="#p-o3" class="rail"/>
+      <use xlink:href="#p-a1" class="flow"/><use xlink:href="#p-b1" class="flow"/>
+      <use xlink:href="#p-a2" class="flow"/><use xlink:href="#p-b2" class="flow"/>
+      <use xlink:href="#p-c" class="flow"/>
+      <use xlink:href="#p-o1" class="flow"/><use xlink:href="#p-o2" class="flow"/><use xlink:href="#p-o3" class="flow"/>
+    </g>
+
+    <!-- Stage 1: inputs -->
+    <g>
+      <rect class="box" x="20" y="49" width="190" height="112" rx="16"/>
+      <rect class="glow" x="20" y="49" width="190" height="112" rx="16"/>
+      <circle class="icon-bg" cx="115" cy="81" r="19"/>
+      <use xlink:href="#i-mic" class="icon" x="104" y="70" width="22" height="22"/>
+      <text class="sans title" x="115" y="126">Lecture</text>
+      <text class="sans sub" x="115" y="149">Live mic · MP3 / WAV</text>
+    </g>
+    <g>
+      <rect class="box" x="20" y="239" width="190" height="112" rx="16"/>
+      <rect class="glow" x="20" y="239" width="190" height="112" rx="16"/>
+      <circle class="icon-bg" cx="115" cy="271" r="19"/>
+      <use xlink:href="#i-files" class="icon" x="104" y="260" width="22" height="22"/>
+      <text class="sans title" x="115" y="316">Course material</text>
+      <text class="sans sub" x="115" y="339">PDF · DOCX · PPTX</text>
+    </g>
+
+    <!-- Stage 2: processing -->
+    <g>
+      <rect class="box" x="266" y="49" width="190" height="112" rx="16"/>
+      <rect class="glow s2" x="266" y="49" width="190" height="112" rx="16"/>
+      <circle class="icon-bg" cx="361" cy="81" r="19"/>
+      <use xlink:href="#i-wave" class="icon" x="350" y="70" width="22" height="22"/>
+      <text class="sans title" x="361" y="126">Transcribe</text>
+      <text class="sans sub" x="361" y="149">faster-whisper · Deepgram</text>
+    </g>
+    <g>
+      <rect class="box" x="266" y="239" width="190" height="112" rx="16"/>
+      <rect class="glow s2" x="266" y="239" width="190" height="112" rx="16"/>
+      <circle class="icon-bg" cx="361" cy="271" r="19"/>
+      <use xlink:href="#i-cube" class="icon" x="350" y="260" width="22" height="22"/>
+      <text class="sans title" x="361" y="316">Chunk &amp; embed</text>
+      <text class="sans sub" x="361" y="339">Parent–child · MiniLM</text>
+    </g>
+
+    <!-- Stage 3: retrieval -->
+    <g>
+      <rect class="box" x="512" y="144" width="190" height="112" rx="16"/>
+      <rect class="glow s3" x="512" y="144" width="190" height="112" rx="16"/>
+      <circle class="icon-bg" cx="607" cy="176" r="19"/>
+      <use xlink:href="#i-search" class="icon" x="596" y="165" width="22" height="22"/>
+      <text class="sans title" x="607" y="221">Retrieve</text>
+      <text class="sans sub" x="607" y="244">Hybrid search · rerank</text>
+    </g>
+
+    <!-- Stage 4: generation -->
+    <g>
+      <rect class="box" x="758" y="144" width="190" height="112" rx="16"/>
+      <rect class="glow s4" x="758" y="144" width="190" height="112" rx="16"/>
+      <circle class="icon-bg" cx="853" cy="176" r="19"/>
+      <use xlink:href="#i-spark" class="icon" x="842" y="165" width="22" height="22"/>
+      <text class="sans title" x="853" y="221">Generate</text>
+      <text class="sans sub" x="853" y="244">LangGraph · fact-checked</text>
+    </g>
+
+    <!-- Stage 5: outputs -->
+    <g>
+      <rect class="box" x="1004" y="86" width="172" height="58" rx="14"/>
+      <rect class="glow s5" x="1004" y="86" width="172" height="58" rx="14"/>
+      <circle class="icon-bg" cx="1036" cy="115" r="16"/>
+      <use xlink:href="#i-book" class="icon" x="1027" y="106" width="18" height="18"/>
+      <text class="sans out-title" x="1062" y="111">Notes</text>
+      <text class="sans out-sub" x="1062" y="131">LaTeX-ready</text>
+    </g>
+    <g>
+      <rect class="box" x="1004" y="171" width="172" height="58" rx="14"/>
+      <rect class="glow s5" x="1004" y="171" width="172" height="58" rx="14"/>
+      <circle class="icon-bg" cx="1036" cy="200" r="16"/>
+      <use xlink:href="#i-clip" class="icon" x="1027" y="191" width="18" height="18"/>
+      <text class="sans out-title" x="1062" y="196">Assignments</text>
+      <text class="sans out-sub" x="1062" y="216">16–24 questions</text>
+    </g>
+    <g>
+      <rect class="box" x="1004" y="256" width="172" height="58" rx="14"/>
+      <rect class="glow s5" x="1004" y="256" width="172" height="58" rx="14"/>
+      <circle class="icon-bg" cx="1036" cy="285" r="16"/>
+      <use xlink:href="#i-layers" class="icon" x="1027" y="276" width="18" height="18"/>
+      <text class="sans out-title" x="1062" y="281">Flashcards</text>
+      <text class="sans out-sub" x="1062" y="301">25–35 cards</text>
+    </g>
+
+    <!-- Moving pulses: each travels its segment during one window of the shared 4.8s cycle -->
+    <g class="pulses">
+      <g opacity="0"><circle r="10" fill="url(#dot-glow)"/><circle r="3" fill="#fff"/>
+        <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0;.15;1"><mpath xlink:href="#p-a1"/></animateMotion>
+        <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;.01;.14;.15;1"/></g>
+      <g opacity="0"><circle r="10" fill="url(#dot-glow)"/><circle r="3" fill="#fff"/>
+        <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;0;.15;1"><mpath xlink:href="#p-b1"/></animateMotion>
+        <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;1;1;0;0" keyTimes="0;.01;.14;.15;1"/></g>
+      <g opacity="0"><circle r="10" fill="url(#dot-glow)"/><circle r="3" fill="#fff"/>
+        <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;.17;.35;1"><mpath xlink:href="#p-a2"/></animateMotion>
+        <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;.17;.18;.34;.35;1"/></g>
+      <g opacity="0"><circle r="10" fill="url(#dot-glow)"/><circle r="3" fill="#fff"/>
+        <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;.17;.35;1"><mpath xlink:href="#p-b2"/></animateMotion>
+        <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;.17;.18;.34;.35;1"/></g>
+      <g opacity="0"><circle r="10" fill="url(#dot-glow)"/><circle r="3" fill="#fff"/>
+        <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;.37;.49;1"><mpath xlink:href="#p-c"/></animateMotion>
+        <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;.37;.38;.48;.49;1"/></g>
+      <g opacity="0"><circle r="10" fill="url(#dot-glow)"/><circle r="3" fill="#fff"/>
+        <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;.51;.66;1"><mpath xlink:href="#p-o1"/></animateMotion>
+        <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;.51;.52;.65;.66;1"/></g>
+      <g opacity="0"><circle r="10" fill="url(#dot-glow)"/><circle r="3" fill="#fff"/>
+        <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;.51;.66;1"><mpath xlink:href="#p-o2"/></animateMotion>
+        <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;.51;.52;.65;.66;1"/></g>
+      <g opacity="0"><circle r="10" fill="url(#dot-glow)"/><circle r="3" fill="#fff"/>
+        <animateMotion dur="4.8s" repeatCount="indefinite" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;.51;.66;1"><mpath xlink:href="#p-o3"/></animateMotion>
+        <animate attributeName="opacity" dur="4.8s" repeatCount="indefinite" values="0;0;1;1;0;0" keyTimes="0;.51;.52;.65;.66;1"/></g>
+    </g>
+  </g>
+
+  <rect x=".5" y=".5" width="1199" height="399" rx="27.5" fill="none" stroke="#fff" stroke-opacity=".08"/>
+</svg>

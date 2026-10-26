@@ -250,31 +250,7 @@ Student → Request Notes/Assignment/Flashcards →
 
 ## Environment Variables
 
-```env
-# Supabase (Auth)
-SUPABASE_URL=https://xxx.supabase.co
-SUPABASE_KEY=your-supabase-key
-
-# MongoDB Atlas
-MONGODB_URI=mongodb+srv://user:pass@cluster.mongodb.net
-MONGODB_DB_NAME=tap_database
-
-# Redis (Optional)
-REDIS_URL=redis://localhost:6379
-
-# Groq API
-GROQ_API_KEY=your-groq-api-key
-GROQ_MODEL=llama3-70b-8192
-
-# HuggingFace (Optional - uses local models by default)
-HUGGINGFACE_API_KEY=your-hf-key
-EMBEDDING_MODEL=sentence-transformers/all-MiniLM-L6-v2
-
-# Storage
-CHROMA_PERSIST_DIR=./chroma_db
-UPLOAD_DIR=apps/api/uploads
-MAX_UPLOAD_SIZE_MB=50
-```
+The full, current list lives in [`apps/api/.env.example`](../apps/api/.env.example) (backend) and [`apps/web/.env.example`](../apps/web/.env.example) (frontend). `app/core/config.py` is the source of truth for defaults.
 
 ## Setup and Deployment
 
@@ -282,18 +258,15 @@ MAX_UPLOAD_SIZE_MB=50
 
 1. **Clone and Install**
    ```bash
-  cd "backend TAP\apps\api"
+   cd apps/api
    python -m venv .venv
    .venv\Scripts\activate  # Windows
-  pip install -r requirements.txt
+   pip install -r requirements-dev.txt
    ```
 
 2. **Configure Environment**
    ```bash
-  # Copy .env.example to .env at the repo root and fill in values
-  cd ..\..
-  cp .env.example .env
-  cd apps\api
+   cp .env.example .env   # inside apps/api, then fill in values
    ```
 
 3. **Install FFmpeg** (Required for audio processing)

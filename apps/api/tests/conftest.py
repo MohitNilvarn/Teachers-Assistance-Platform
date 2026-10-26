@@ -1,29 +1,12 @@
-import asyncio
-import sys
-from pathlib import Path
+from typing import AsyncGenerator
+from unittest.mock import AsyncMock
 
 import pytest
-from typing import AsyncGenerator
-from unittest.mock import MagicMock, AsyncMock
+import pytest_asyncio
 from httpx import AsyncClient, ASGITransport
-API_ROOT = Path(__file__).resolve().parents[1]
-if str(API_ROOT) not in sys.path:
-    sys.path.insert(0, str(API_ROOT))
 
 from app.main import app
 
-# Handle the asyncio loop scope warning
-@pytest.fixture(scope="session")
-def event_loop_policy():
-    return asyncio.DefaultEventLoopPolicy()
-
-@pytest.fixture(scope="session")
-def event_loop():
-    """Create an instance of the default event loop for each test session."""
-    policy = asyncio.get_event_loop_policy()
-    loop = policy.new_event_loop()
-    yield loop
-    loop.close()
 
 @pytest.fixture(scope="session", autouse=True)
 def mock_db_connections():
@@ -45,7 +28,7 @@ def mock_db_connections():
         mp.setattr("app.main.close_redis_connection", mock_close_redis)
         yield
 
-@pytest.fixture(scope="session")
+@pytest_asyncio.fixture(scope="session", loop_scope="session")
 async def client() -> AsyncGenerator[AsyncClient, None]:
     """
     Create a new AsyncClient for the FastAPI app.

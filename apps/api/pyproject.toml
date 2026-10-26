@@ -1,0 +1,15 @@
+# Tool configuration for the TAP API.
+# Dependencies are managed in requirements.txt / requirements-dev.txt.
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+asyncio_default_fixture_loop_scope = "session"
+filterwarnings = [
+    # Third-party noise unrelated to this codebase
+    "ignore::DeprecationWarning:pydub.*",
+    "ignore:Couldn't find ffmpeg or avconv:RuntimeWarning",
+]
+
+[tool.coverage.run]
+source = ["app"]

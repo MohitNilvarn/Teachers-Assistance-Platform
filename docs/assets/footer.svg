@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="130" viewBox="0 0 1200 130" role="presentation" aria-hidden="true">
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#5b2bb5"/>
+      <stop offset=".5" stop-color="#c2185b"/>
+      <stop offset="1" stop-color="#e8a849"/>
+    </linearGradient>
+    <!-- Each wave spans 2400 units and repeats every 1200, so sliding by 1200 loops seamlessly -->
+    <mask id="waves">
+      <g class="wave back">
+        <path fill="#fff" fill-opacity=".35" d="M0 58Q150 34 300 58T600 58T900 58T1200 58T1500 58T1800 58T2100 58T2400 58V130H0Z"/>
+      </g>
+      <g class="wave mid">
+        <path fill="#fff" fill-opacity=".55" d="M0 76Q100 60 200 76T400 76T600 76T800 76T1000 76T1200 76T1400 76T1600 76T1800 76T2000 76T2200 76T2400 76V130H0Z"/>
+      </g>
+      <g class="wave front">
+        <path fill="#fff" d="M0 94Q300 78 600 94T1200 94T1800 94T2400 94V130H0Z"/>
+      </g>
+    </mask>
+  </defs>
+  <style>
+    .wave { animation: slide 24s linear infinite; }
+    .mid { animation-duration: 17s; animation-direction: reverse; }
+    .front { animation-duration: 30s; }
+    @keyframes slide { from { transform: translateX(0); } to { transform: translateX(-1200px); } }
+    @media (prefers-reduced-motion: reduce) { .wave { animation: none; } }
+  </style>
+  <rect width="1200" height="130" fill="url(#accent)" mask="url(#waves)"/>
+</svg>

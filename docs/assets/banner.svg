@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420" role="img" aria-labelledby="title desc">
+  <title id="title">TAP — Teacher Assistance Platform</title>
+  <desc id="desc">The platform to teach, learn, assess and grow. Lectures in; grounded notes, assignments and flashcards out.</desc>
+  <defs>
+    <linearGradient id="accent" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#9b6dff"/>
+      <stop offset=".55" stop-color="#e0457b"/>
+      <stop offset="1" stop-color="#f0b35a"/>
+    </linearGradient>
+    <linearGradient id="accent-h" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#9b6dff"/>
+      <stop offset=".55" stop-color="#e0457b"/>
+      <stop offset="1" stop-color="#f0b35a"/>
+    </linearGradient>
+    <!-- Eased falloff (extra stops) avoids a visible ring at the glow edge -->
+    <radialGradient id="orb-violet"><stop offset="0" stop-color="#5b2bb5" stop-opacity=".75"/><stop offset=".35" stop-color="#5b2bb5" stop-opacity=".46"/><stop offset=".7" stop-color="#5b2bb5" stop-opacity=".13"/><stop offset="1" stop-color="#5b2bb5" stop-opacity="0"/></radialGradient>
+    <radialGradient id="orb-magenta"><stop offset="0" stop-color="#c2185b" stop-opacity=".5"/><stop offset=".35" stop-color="#c2185b" stop-opacity=".31"/><stop offset=".7" stop-color="#c2185b" stop-opacity=".09"/><stop offset="1" stop-color="#c2185b" stop-opacity="0"/></radialGradient>
+    <radialGradient id="orb-amber"><stop offset="0" stop-color="#e8a849" stop-opacity=".26"/><stop offset=".35" stop-color="#e8a849" stop-opacity=".16"/><stop offset=".7" stop-color="#e8a849" stop-opacity=".05"/><stop offset="1" stop-color="#e8a849" stop-opacity="0"/></radialGradient>
+    <radialGradient id="grid-fade" cx=".62" cy=".45" r=".7">
+      <stop offset="0" stop-color="#fff"/>
+      <stop offset="1" stop-color="#000"/>
+    </radialGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M40 0H0V40" fill="none" stroke="#fff" stroke-opacity=".05"/>
+    </pattern>
+    <mask id="grid-mask"><rect width="1200" height="420" fill="url(#grid-fade)"/></mask>
+    <clipPath id="frame"><rect width="1200" height="420" rx="28"/></clipPath>
+  </defs>
+
+  <style>
+    .sans { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Inter, Helvetica, Arial, sans-serif; }
+    .serif { font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif; font-style: italic; font-weight: 400; }
+    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
+
+    .headline { font-size: 76px; font-weight: 600; letter-spacing: -2.5px; fill: #f0ede8; }
+    .spacer { fill-opacity: 0; }
+
+    /* Rotating word, mirroring the landing page hero */
+    .word { opacity: 0; animation: word 10s cubic-bezier(.22, 1, .36, 1) infinite both; }
+    .w1 { opacity: 1; }
+    .w2 { animation-delay: 2.5s; }
+    .w3 { animation-delay: 5s; }
+    .w4 { animation-delay: 7.5s; }
+    @keyframes word {
+      0% { opacity: 0; transform: translateY(26px); }
+      5%, 22% { opacity: 1; transform: translateY(0); }
+      27%, 100% { opacity: 0; transform: translateY(-26px); }
+    }
+
+    /* Ambient light */
+    .orb { transform-box: fill-box; transform-origin: center; animation: drift 18s ease-in-out infinite alternate; }
+    .orb-2 { animation-duration: 22s; animation-delay: -7s; }
+    .orb-3 { animation-duration: 15s; animation-delay: -3s; }
+    @keyframes drift {
+      0% { transform: translate(0, 0) scale(1); }
+      50% { transform: translate(-46px, 26px) scale(1.08); }
+      100% { transform: translate(32px, -22px) scale(.94); }
+    }
+
+    /* Content being "generated" inside the card */
+    .bar { transform-box: fill-box; transform-origin: left center; animation: type 7s cubic-bezier(.22, 1, .36, 1) infinite both; }
+    .b2 { animation-delay: .35s; } .b3 { animation-delay: .55s; } .b4 { animation-delay: .75s; }
+    .b5 { animation-delay: 1.05s; } .b6 { animation-delay: 1.3s; } .b7 { animation-delay: 1.55s; }
+    @keyframes type {
+      0% { transform: scaleX(0); opacity: 0; }
+      9% { transform: scaleX(1); opacity: 1; }
+      82% { transform: scaleX(1); opacity: 1; }
+      92%, 100% { transform: scaleX(1); opacity: 0; }
+    }
+    .pop { animation: pop 7s ease-out infinite both; animation-delay: 1.05s; }
+    @keyframes pop {
+      0% { opacity: 0; transform: translateY(6px); }
+      8%, 82% { opacity: 1; transform: translateY(0); }
+      92%, 100% { opacity: 0; transform: translateY(0); }
+    }
+
+    .float { animation: float 6s ease-in-out infinite; }
+    .float-2 { animation-duration: 7.5s; animation-delay: -2.5s; }
+    @keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-9px); } }
+
+    .pulse { transform-box: fill-box; transform-origin: center; animation: pulse 2s ease-out infinite; }
+    @keyframes pulse { 0% { transform: scale(1); opacity: .8; } 100% { transform: scale(2.8); opacity: 0; } }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation: none !important; }
+    }
+  </style>
+
+  <g clip-path="url(#frame)">
+    <rect width="1200" height="420" fill="#0a0a0b"/>
+    <rect width="1200" height="420" fill="url(#grid)" mask="url(#grid-mask)"/>
+
+    <circle class="orb" cx="930" cy="120" r="330" fill="url(#orb-violet)"/>
+    <circle class="orb orb-2" cx="1110" cy="360" r="260" fill="url(#orb-magenta)"/>
+    <circle class="orb orb-3" cx="900" cy="440" r="240" fill="url(#orb-amber)"/>
+
+    <!-- Wordmark -->
+    <rect x="72" y="58" width="36" height="36" rx="10" fill="url(#accent)"/>
+    <g transform="translate(80 66) scale(.833)" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"/>
+      <path d="M22 10v6"/>
+      <path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"/>
+    </g>
+    <text class="sans" x="122" y="83">
+      <tspan font-size="20" font-weight="700" letter-spacing="1.5" fill="#f0ede8">TAP</tspan>
+      <tspan dx="12" font-size="15" fill="#3a3935">/</tspan>
+      <tspan dx="12" font-size="15" fill="#7a7770">Teacher Assistance Platform</tspan>
+    </text>
+
+    <!-- Headline -->
+    <text class="sans headline" x="72" y="200">The platform</text>
+    <text class="sans headline" x="72" y="282">to</text>
+    <text class="sans headline word w1" x="72" y="282"><tspan class="spacer">to</tspan><tspan class="serif" dx="20" fill="url(#accent-h)">teach.</tspan></text>
+    <text class="sans headline word w2" x="72" y="282"><tspan class="spacer">to</tspan><tspan class="serif" dx="20" fill="url(#accent-h)">learn.</tspan></text>
+    <text class="sans headline word w3" x="72" y="282"><tspan class="spacer">to</tspan><tspan class="serif" dx="20" fill="url(#accent-h)">assess.</tspan></text>
+    <text class="sans headline word w4" x="72" y="282"><tspan class="spacer">to</tspan><tspan class="serif" dx="20" fill="url(#accent-h)">grow.</tspan></text>
+
+    <text class="sans" x="72" y="336" font-size="20" fill="#8a867f">Lectures in. Grounded notes, assignments &amp; flashcards out.</text>
+
+    <text class="sans" x="72" y="378" font-size="15" letter-spacing=".3" fill="#7a7770">
+      <tspan fill="#9b6dff">●</tspan><tspan dx="7">Live transcription</tspan>
+      <tspan dx="20" fill="#e0457b">●</tspan><tspan dx="7">Hybrid retrieval</tspan>
+      <tspan dx="20" fill="#f0b35a">●</tspan><tspan dx="7">Fact-checked output</tspan>
+    </text>
+
+    <!-- Generated notes card -->
+    <g class="float">
+      <rect x="752" y="92" width="376" height="236" rx="18" fill="#141416" fill-opacity=".92" stroke="#fff" stroke-opacity=".09"/>
+      <circle cx="778" cy="117" r="4.5" fill="#2a2a2e"/>
+      <circle cx="794" cy="117" r="4.5" fill="#2a2a2e"/>
+      <circle cx="810" cy="117" r="4.5" fill="#2a2a2e"/>
+      <text class="mono" x="828" y="121" font-size="12" fill="#6b675f">lecture-04.notes</text>
+      <rect x="1010" y="105" width="100" height="24" rx="12" fill="#e0457b" fill-opacity=".1" stroke="#e0457b" stroke-opacity=".35"/>
+      <circle class="pulse" cx="1026" cy="117" r="3.5" fill="#e0457b"/>
+      <circle cx="1026" cy="117" r="3.5" fill="#e0457b"/>
+      <text class="sans" x="1036" y="121" font-size="11.5" fill="#e8a0b8">generating</text>
+      <path d="M752 138H1128" stroke="#fff" stroke-opacity=".06"/>
+
+      <rect class="bar" x="776" y="158" width="210" height="14" rx="7" fill="#f0ede8" fill-opacity=".9"/>
+      <rect class="bar b2" x="776" y="188" width="316" height="8" rx="4" fill="#7a7770" fill-opacity=".55"/>
+      <rect class="bar b3" x="776" y="206" width="288" height="8" rx="4" fill="#7a7770" fill-opacity=".55"/>
+      <rect class="bar b4" x="776" y="224" width="304" height="8" rx="4" fill="#7a7770" fill-opacity=".55"/>
+      <g class="pop">
+        <rect x="776" y="246" width="164" height="36" rx="10" fill="#9b6dff" fill-opacity=".08" stroke="url(#accent-h)" stroke-opacity=".7"/>
+        <text class="serif" x="858" y="270" font-size="19" text-anchor="middle" fill="#f0ede8">E = mc²</text>
+      </g>
+      <rect class="bar b6" x="958" y="254" width="146" height="8" rx="4" fill="#7a7770" fill-opacity=".55"/>
+      <rect class="bar b6" x="958" y="270" width="110" height="8" rx="4" fill="#7a7770" fill-opacity=".55"/>
+      <rect class="bar b7" x="776" y="300" width="250" height="8" rx="4" fill="#7a7770" fill-opacity=".55"/>
+    </g>
+
+    <!-- Floating chips -->
+    <g class="float float-2">
+      <rect x="988" y="56" width="180" height="46" rx="14" fill="#17171a" stroke="#fff" stroke-opacity=".1"/>
+      <g transform="translate(1004 70) scale(.75)" fill="none" stroke="url(#accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M12.83 2.18a2 2 0 0 0-1.66 0L2.6 6.08a1 1 0 0 0 0 1.83l8.58 3.91a2 2 0 0 0 1.66 0l8.58-3.9a1 1 0 0 0 0-1.83Z"/>
+        <path d="m22 17.65-9.17 4.16a2 2 0 0 1-1.66 0L2 17.65"/>
+        <path d="m22 12.65-9.17 4.16a2 2 0 0 1-1.66 0L2 12.65"/>
+      </g>
+      <text class="sans" x="1032" y="84"><tspan font-size="15" font-weight="600" fill="#f0ede8">Flashcards</tspan><tspan dx="8" font-size="13" fill="#7a7770">25–35</tspan></text>
+    </g>
+
+    <g class="float">
+      <rect x="696" y="300" width="216" height="46" rx="14" fill="#17171a" stroke="#fff" stroke-opacity=".1"/>
+      <g transform="translate(712 314) scale(.75)" fill="none" stroke="url(#accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+        <path d="M12 11h4"/><path d="M12 16h4"/><path d="M8 11h.01"/><path d="M8 16h.01"/>
+      </g>
+      <text class="sans" x="740" y="328"><tspan font-size="15" font-weight="600" fill="#f0ede8">Assignments</tspan><tspan dx="8" font-size="13" fill="#7a7770">16–24 Qs</tspan></text>
+    </g>
+  </g>
+
+  <rect x=".5" y=".5" width="1199" height="419" rx="27.5" fill="none" stroke="#fff" stroke-opacity=".08"/>
+</svg>

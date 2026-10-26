@@ -4,8 +4,8 @@ import { motion } from "framer-motion"
 import {
     GraduationCap, Loader2, BookOpen, ArrowRight,
 } from "lucide-react"
-import { api } from "../../../lib/api"
-import type { Course, Subject } from "../../../types"
+import { api } from "../../lib/api"
+import type { Course, Subject } from "../../types"
 
 interface Props {
     year: string

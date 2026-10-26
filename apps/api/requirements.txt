@@ -1,85 +1,46 @@
-# Core Framework
+# Runtime dependencies for the TAP API.
+# Dev/test tooling lives in requirements-dev.txt.
+
+# Web framework
 fastapi
 uvicorn[standard]
-python-multipart
-pydantic[email]
-pydantic-settings
-email-validator
+python-multipart        # required by FastAPI for File/Form uploads
+pydantic[email]         # EmailStr validation
+python-dotenv
 
-# Database & ORM
-sqlalchemy
-alembic
-psycopg2-binary
+# Auth
 supabase
-postgrest
+python-jose[cryptography]
+
+# Database & cache
 motor
 beanie
 pymongo
-dnspython
+dnspython               # required for mongodb+srv:// URIs
+redis
 
-# Authentication
-python-jose[cryptography]
-passlib[bcrypt]
-python-dotenv
-
-# LangChain Ecosystem (Open Source)
-langchain
+# LLM orchestration & RAG
 langchain-core
-langchain-community
 langchain-openai
+langchain-groq
 langgraph
-
-# Vector Stores (using MongoDB Atlas Vector Search - no external deps needed)
-# chromadb  # Replaced by MongoDB Atlas Vector Search
 sentence-transformers
+numpy
 
-# Document Processing
+# Document processing
 PyMuPDF
 pytesseract
 Pillow
 python-docx
 python-pptx
-openpyxl
 markdown
 beautifulsoup4
 
-# Audio Processing (Open Source)
+# Audio & speech-to-text
 faster-whisper
 pydub
-ffmpeg-python
-librosa
+websockets              # Deepgram real-time streaming
 
-# Real-time Transcription
-deepgram-sdk
-websockets
-
-# Text Processing & Embeddings
-tiktoken
-huggingface-hub
-transformers
-numpy
-
-# Async & Background Tasks
-celery
-redis
-flower
-
-# API Clients
-groq
+# HTTP & utilities
 httpx
-wikipedia-api
-
-# Monitoring & Logging
-loguru
-
-# Testing
-pytest
-pytest-asyncio
-pytest-cov
-
-# Utils
-python-magic
-aiofiles
-requests
 tenacity
-PyMuPDF

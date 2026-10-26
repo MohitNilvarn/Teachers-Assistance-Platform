@@ -206,3 +206,22 @@ export interface UnitDetail {
   lectures: UnitLectureDetail[]
   total_lectures: number
 }
+
+// ── Chat ─────────────────────────────────────
+
+export interface ChatMessage {
+  role: string // "user" | "assistant"
+  content: string
+}
+
+export interface ChatRequest {
+  query: string
+  course_id?: string
+  lecture_id?: string
+  history: ChatMessage[]
+}
+
+export interface ChatResponse {
+  response: string
+  sources: Array<{ id: string; source: string; score?: number }>
+}

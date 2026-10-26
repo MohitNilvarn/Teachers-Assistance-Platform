@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Button } from "./button-landing";
+import { LandingButton } from "./LandingButton";
 import { ArrowRight } from "lucide-react";
-import { AnimatedSphere } from "./animated-sphere";
+import { AnimatedSphere } from "./AnimatedSphere";
 
 const words = ["teach", "learn", "assess", "grow"];
 
@@ -11,7 +11,9 @@ export function HeroSection() {
   const [wordIndex, setWordIndex] = useState(0);
 
   useEffect(() => {
-    setIsVisible(true);
+    // Defer to the next frame so the hidden state paints first and the entrance transition runs.
+    const frame = requestAnimationFrame(() => setIsVisible(true));
+    return () => cancelAnimationFrame(frame);
   }, []);
 
   useEffect(() => {
@@ -118,21 +120,21 @@ export function HeroSection() {
             }`}
           >
             <Link to="/signup">
-              <Button 
+              <LandingButton 
                 size="lg" 
                 className="bg-foreground hover:bg-foreground/90 text-background px-8 h-14 text-base rounded-full group"
               >
                 Get Started Free
                 <ArrowRight className="w-4 h-4 ml-2 transition-transform group-hover:translate-x-1" />
-              </Button>
+              </LandingButton>
             </Link>
-            <Button 
+            <LandingButton 
               size="lg" 
               variant="outline" 
               className="h-14 px-8 text-base rounded-full border-foreground/20 hover:bg-foreground/5"
             >
               Watch Demo
-            </Button>
+            </LandingButton>
           </div>
         </div>
         
